@@ -1,0 +1,47 @@
+/* style.css */
+/**
+ * 玉子手机 - 样式顶层入口
+ * Layer map
+ * 1. shell    : 独立容器 / toggle / resize 基础层
+ * 2. base     : phone-base 现代基础层（legacy 归档说明由 01-phone-base.css 承接）
+ * 3. nav      : 顶层通用导航 / 详情补层
+ * 4. generic  : 通用表模板层
+ * 5. theater  : 小剧场三场景（广场 / 论坛 / 直播）美化层
+ * 6. variable : 变量管理层
+ * 7. presets  : 玉子美化运行 shell 与模板工坊补层
+ * 8. settings : 表格替换 / 图片生成 / 全屏浮层设置与运行层
+ * @version 2.3.0
+ */
+
+/* 1) shell layer */
+@import url('./styles/00-phone-shell.css');
+
+/* 2) base modern layer */
+@import url('./styles/01-phone-base.css');
+
+/* 3) shared nav / detail layer */
+@import url('./styles/02-phone-nav-detail.css');
+
+/* 4) generic template layer */
+@import url('./styles/05-phone-generic-template.css');
+
+/* 5) theater scene layer */
+@import url('./styles/06-phone-theater.css');
+
+/* 6) variable manager layer */
+@import url('./styles/12-variable-manager.css');
+
+/* 7) content preset shell / workshop */
+@import url('./styles/13-content-presets.css');
+
+/* 8) table content replacement settings */
+@import url('./styles/14-table-content-replacement.css');
+
+/* 9) image generation settings */
+@import url('./styles/15-image-generation.css');
+
+/* 10) fullscreen overlay runtime / settings */
+@import url('./styles/16-fullscreen-overlay.css');
+
+/* 11) input shortcut settings */
+@import url('./styles/17-input-shortcuts.css');

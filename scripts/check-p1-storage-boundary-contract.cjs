@@ -1,0 +1,192 @@
+const fs = require('fs');
+const path = require('path');
+
+const ROOT = process.cwd();
+const MODULES_DIR = path.join(ROOT, 'modules');
+
+const ALLOWED_INDEXED_DB_FILES = new Set([
+    'modules/settings/appearance-asset-repository.js',
+    'modules/cache-manager.js',
+    'modules/settings-app/services/appearance-settings/appearance-pack-repository.js',
+    'modules/content-presets/repository.js',
+]);
+
+const REQUIRED_SETTING_FILES = {
+    settingsFacade: 'modules/settings.js',
+    settingsPersistence: 'modules/settings/persistence.js',
+    templateStore: 'modules/phone-beautify-templates/store.js',
+    templateRepository: 'modules/phone-beautify-templates/repository.js',
+};
+
+const REQUIRED_CACHE_FILES = {
+    cacheManager: 'modules/cache-manager.js',
+    backgroundService: 'modules/settings-app/services/appearance-settings/background-service.js',
+    iconUploadService: 'modules/settings-app/services/appearance-settings/icon-upload-service.js',
+};
+
+const REQUIRED_APPEARANCE_PACK_REPOSITORY = 'modules/settings-app/services/appearance-settings/appearance-pack-repository.js';
+const REQUIRED_CONTENT_PRESET_REPOSITORY = 'modules/content-presets/repository.js';
+
+function read(relativePath) {
+    return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+}
+
+function has(content, snippet) {
+    return content.includes(snippet);
+}
+
+function listJsFiles(dir) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const files = [];
+    for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+            files.push(...listJsFiles(fullPath));
+        } else if (entry.isFile() && entry.name.endsWith('.js')) {
+            files.push(fullPath);
+        }
+    }
+    return files;
+}
+
+function toRelative(filePath) {
+    return path.relative(ROOT, filePath).replace(/\\/g, '/');
+}
+
+function collectStorageReferences() {
+    return listJsFiles(MODULES_DIR)
+        .map((filePath) => {
+            const relativePath = toRelative(filePath);
+            const content = fs.readFileSync(filePath, 'utf8');
+            const matches = [...content.matchAll(/\b(?:localStorage|sessionStorage)\b/g)];
+            return { relativePath, matches };
+        })
+        .filter(item => item.matches.length > 0);
+}
+
+function collectIndexedDbOpenReferences() {
+    return listJsFiles(MODULES_DIR)
+        .map((filePath) => {
+            const relativePath = toRelative(filePath);
+            const content = fs.readFileSync(filePath, 'utf8');
+            const matches = [...content.matchAll(/\bindexedDB\.open\s*\(/g)];
+            return { relativePath, matches };
+        })
+        .filter(item => item.matches.length > 0);
+}
+
+function extractSection(content, startMarker, endMarker) {
+    const start = content.indexOf(startMarker);
+    if (start < 0) return '';
+
+    const end = content.indexOf(endMarker, start + startMarker.length);
+    if (end < 0) return '';
+
+    return content.slice(start, end);
+}
+
+function check(results, file, description, ok, details = '') {
+    results.push({ file, description, ok, details });
+}
+
+function main() {
+    const results = [];
+    check(
+        results,
+        'modules/phone-core/chat-support/ai-instruction-store.js',
+        '旧 AI 指令 localStorage 迁移存储已删除，QQ 配置不复用该路径',
+        !fs.existsSync(path.join(ROOT, 'modules/phone-core/chat-support/ai-instruction-store.js')),
+    );
+
+    const storageReferences = collectStorageReferences();
+    for (const item of storageReferences) {
+        check(
+            results,
+            item.relativePath,
+            '生产模块不得直接使用 localStorage/sessionStorage，持久数据使用专用 repository',
+            false,
+            `${item.matches.length} references`
+        );
+    }
+
+    const indexedDbReferences = collectIndexedDbOpenReferences();
+    for (const item of indexedDbReferences) {
+        check(
+            results,
+            item.relativePath,
+            '裸 indexedDB.open() 只能出现在 cache-manager 或明确的专用 repository',
+            ALLOWED_INDEXED_DB_FILES.has(item.relativePath),
+            `${item.matches.length} references`
+        );
+    }
+
+    const settingsFacade = read(REQUIRED_SETTING_FILES.settingsFacade);
+    const settingsPersistence = read(REQUIRED_SETTING_FILES.settingsPersistence);
+    const savePhoneSettingBody = extractSection(
+        settingsPersistence,
+        'function savePhoneSetting(',
+        'function savePhoneSettingsPatch(',
+    );
+    const savePhoneSettingsPatchBody = extractSection(
+        settingsPersistence,
+        'function savePhoneSettingsPatch(',
+        'function resetPhoneSettingsToDefault(',
+    );
+    const templateStore = read(REQUIRED_SETTING_FILES.templateStore);
+    const templateRepository = read(REQUIRED_SETTING_FILES.templateRepository);
+    check(results, REQUIRED_SETTING_FILES.settingsFacade, 'settings facade 统一导出 savePhoneSetting()', has(settingsFacade, 'export const savePhoneSetting = persistenceTools.savePhoneSetting;'));
+    check(results, REQUIRED_SETTING_FILES.settingsFacade, 'settings facade 统一导出 savePhoneSettingsPatch()', has(settingsFacade, 'export const savePhoneSettingsPatch = persistenceTools.savePhoneSettingsPatch;'));
+    check(results, REQUIRED_SETTING_FILES.settingsPersistence, 'settings persistence 保存单项前走 validateSetting()', has(savePhoneSettingBody, 'validateSetting(key, value);'));
+    check(results, REQUIRED_SETTING_FILES.settingsPersistence, 'settings persistence 保存单项只写入归一化值', has(savePhoneSettingBody, 'settings[key] = result.value;'));
+    check(results, REQUIRED_SETTING_FILES.settingsPersistence, 'settings persistence 保存 patch 逐项走 validateSetting()', has(savePhoneSettingsPatchBody, 'const result = validateSetting(key, value);'));
+    check(results, REQUIRED_SETTING_FILES.settingsPersistence, 'settings persistence 保存 patch 只写入归一化值', has(savePhoneSettingsPatchBody, 'settings[key] = result.value;'));
+    check(results, REQUIRED_SETTING_FILES.settingsPersistence, 'settings persistence 保存 patch 保留 invalid 通知', has(savePhoneSettingsPatchBody, "showNotification?.('部分设置已按默认规则修正', 'warning');"));
+    check(results, REQUIRED_SETTING_FILES.templateStore, 'beautify template store 通过 settings 保存模板仓库', has(templateStore, 'savePhoneSetting(PHONE_BEAUTIFY_STORE_KEY, normalized);'));
+    check(results, REQUIRED_SETTING_FILES.templateRepository, 'beautify template repository 保存后失效缓存', has(templateRepository, 'invalidatePhoneBeautifyTemplateCache();'));
+    check(results, 'modules/settings-app/services/worldbook-selection.js', '旧世界书选择服务已删除，QQ 不再通过手机设置保存世界书筛选', !fs.existsSync(path.join(ROOT, 'modules/settings-app/services/worldbook-selection.js')));
+    const cacheManager = read(REQUIRED_CACHE_FILES.cacheManager);
+    const backgroundService = read(REQUIRED_CACHE_FILES.backgroundService);
+    const iconUploadService = read(REQUIRED_CACHE_FILES.iconUploadService);
+    check(results, REQUIRED_CACHE_FILES.cacheManager, 'cache-manager 使用 IndexedDB 而非 localStorage', has(cacheManager, 'indexedDB.open(DB_NAME, DB_VERSION)') && !has(cacheManager, 'localStorage'));
+    check(results, REQUIRED_CACHE_FILES.cacheManager, 'cache-manager 定义 templates/images/settings 三类可再生缓存 store', has(cacheManager, 'templates: STORE_TEMPLATES') && has(cacheManager, 'images: STORE_IMAGES') && has(cacheManager, 'settings: STORE_SETTINGS'));
+    const appearancePackRepository = read(REQUIRED_APPEARANCE_PACK_REPOSITORY);
+    check(results, REQUIRED_APPEARANCE_PACK_REPOSITORY, '外观包仓库使用独立 IndexedDB 且不写 settings', has(appearancePackRepository, "DB_NAME = 'yuzi-phone-appearance-packs'")
+        && has(appearancePackRepository, 'indexedDB.open(DB_NAME, DB_VERSION)')
+        && !has(appearancePackRepository, 'savePhoneSetting(')
+        && !has(appearancePackRepository, 'savePhoneSettingsPatch('));
+    const contentPresetRepository = read(REQUIRED_CONTENT_PRESET_REPOSITORY);
+    check(results, REQUIRED_CONTENT_PRESET_REPOSITORY, '玉子预设仓库使用独立数据库、双 store 与 presetId index',
+        has(contentPresetRepository, 'CONTENT_PRESET_DB_NAME')
+        && has(contentPresetRepository, 'CONTENT_PRESET_STORES.presets')
+        && has(contentPresetRepository, 'CONTENT_PRESET_STORES.activeByTable')
+        && has(contentPresetRepository, 'CONTENT_PRESET_BINDING_INDEX'));
+    check(results, REQUIRED_CONTENT_PRESET_REPOSITORY, '玉子预设仓库不写 settings/localStorage/sessionStorage 且不混用其他 DB',
+        !has(contentPresetRepository, 'savePhoneSetting(')
+        && !has(contentPresetRepository, 'savePhoneSettingsPatch(')
+        && !/\b(?:localStorage|sessionStorage)\b/.test(contentPresetRepository)
+        && !has(contentPresetRepository, 'yuzi-phone-cache')
+        && !has(contentPresetRepository, 'yuzi-phone-appearance-packs'));
+    check(results, REQUIRED_APPEARANCE_PACK_REPOSITORY, '外观包仓库定义数量、单包和总容量限制', has(appearancePackRepository, 'MAX_PACK_COUNT = 20') && has(appearancePackRepository, 'MAX_SINGLE_PACK_BYTES = 20 * 1024 * 1024') && has(appearancePackRepository, 'MAX_TOTAL_PACK_BYTES = 100 * 1024 * 1024'));
+    check(results, REQUIRED_CACHE_FILES.backgroundService, '背景图片原始设置走 settings', has(backgroundService, "savePhoneSetting('backgroundImage', dataUrl);"));
+    check(results, REQUIRED_CACHE_FILES.backgroundService, '背景上传不再向缓存复制图片', !has(backgroundService, 'cacheSet(') && !has(backgroundService, 'cacheGet('));
+    check(results, REQUIRED_CACHE_FILES.iconUploadService, '应用图标原始设置走 settings', has(iconUploadService, 'savePhoneSettingsPatch(nextState);'));
+    check(results, REQUIRED_CACHE_FILES.iconUploadService, '图标上传不再向缓存复制图片', !has(iconUploadService, 'cacheSet('));
+
+    const failed = results.filter(item => !item.ok);
+    if (failed.length > 0) {
+        console.error('[p1-storage-boundary-contract-check] 检查失败：');
+        for (const item of failed) {
+            const suffix = item.details ? ` (${item.details})` : '';
+            console.error(`- ${item.file}: ${item.description}${suffix}`);
+        }
+        process.exitCode = 1;
+        return;
+    }
+
+    console.log('[p1-storage-boundary-contract-check] 检查通过');
+    for (const item of results) {
+        console.log(`- OK | ${item.file} | ${item.description}`);
+    }
+}
+
+main();

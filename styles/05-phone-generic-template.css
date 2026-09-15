@@ -1,0 +1,1273 @@
+/* ========================================
+   Phone 通用表格模板层（Template Driven Layer）
+   - 只作用于 .phone-generic-root.phone-generic-template-scope
+   - 覆盖基础层，提供结构开关 + token 化能力
+   ======================================== */
+
+.phone-generic-root.phone-generic-template-scope {
+    /* ===== 兼容桥接（旧 token -> 新 token） ===== */
+    --yuzi-generic-template-resolved-page-bg: var(--yuzi-generic-template-page-bg, var(--yuzi-theme-page-bg, transparent));
+    --yuzi-generic-template-resolved-body-bg: var(--yuzi-generic-template-body-bg, var(--yuzi-generic-template-compat-table-bg, transparent));
+
+    --yuzi-generic-template-resolved-text: var(--yuzi-generic-template-text, var(--yuzi-generic-template-compat-text, var(--yuzi-theme-text-primary, #3A3731)));
+    --yuzi-generic-template-resolved-muted-text: var(--yuzi-generic-template-muted-text, var(--yuzi-theme-text-secondary, #7A7772));
+
+    --yuzi-generic-template-resolved-nav-bg: var(--yuzi-generic-template-nav-bg, var(--yuzi-generic-template-compat-nav-bg, var(--yuzi-theme-surface-soft, rgba(245, 243, 239, 0.6))));
+    --yuzi-generic-template-resolved-nav-border: var(--yuzi-generic-template-nav-border-color, var(--yuzi-generic-template-compat-border, var(--yuzi-theme-border, rgba(58, 55, 49, 0.08))));
+    --yuzi-generic-template-resolved-nav-text: var(--yuzi-generic-template-nav-text, var(--yuzi-generic-template-resolved-text));
+    --yuzi-generic-template-resolved-nav-back-text: var(--yuzi-generic-template-nav-back-text, var(--yuzi-theme-accent, #5B7A6A));
+
+    --yuzi-generic-template-resolved-list-bg: var(--yuzi-generic-template-list-bg, var(--yuzi-generic-template-compat-table-bg, var(--yuzi-theme-surface, rgba(245, 243, 239, 0.96))));
+    --yuzi-generic-template-resolved-list-border: var(--yuzi-generic-template-list-border, var(--yuzi-generic-template-compat-border, var(--yuzi-theme-border, rgba(58, 55, 49, 0.08))));
+    --yuzi-generic-template-resolved-list-item-bg: var(--yuzi-generic-template-list-item-bg, transparent);
+    --yuzi-generic-template-resolved-list-item-hover-bg: var(--yuzi-generic-template-list-item-hover-bg, var(--yuzi-theme-accent-soft, rgba(91, 122, 106, 0.1)));
+    --yuzi-generic-template-resolved-list-item-text: var(--yuzi-generic-template-list-item-text, var(--yuzi-generic-template-resolved-text));
+
+    --yuzi-generic-template-resolved-detail-bg: var(--yuzi-generic-template-detail-bg, var(--yuzi-generic-template-compat-table-bg, var(--yuzi-theme-surface-soft, rgba(245, 243, 239, 0.6))));
+    --yuzi-generic-template-resolved-detail-border: var(--yuzi-generic-template-detail-border, var(--yuzi-generic-template-compat-border, var(--yuzi-theme-border, rgba(58, 55, 49, 0.08))));
+    --yuzi-generic-template-resolved-detail-field-bg: var(--yuzi-generic-template-detail-field-bg, transparent);
+    --yuzi-generic-template-resolved-detail-field-border: var(--yuzi-generic-template-detail-field-border, var(--yuzi-theme-border, rgba(58, 55, 49, 0.08)));
+    --yuzi-generic-template-resolved-detail-key-text: var(--yuzi-generic-template-detail-key-text, var(--yuzi-theme-accent, #5B7A6A));
+    --yuzi-generic-template-resolved-detail-value-text: var(--yuzi-generic-template-detail-value-text, var(--yuzi-generic-template-resolved-text));
+
+    --yuzi-generic-template-resolved-action-btn-bg: var(--yuzi-generic-template-action-btn-bg, var(--yuzi-theme-surface-soft, rgba(245, 243, 239, 0.6)));
+    --yuzi-generic-template-resolved-action-btn-border: var(--yuzi-generic-template-action-btn-border, var(--yuzi-theme-border-strong, rgba(58, 55, 49, 0.12)));
+    --yuzi-generic-template-resolved-action-btn-text: var(--yuzi-generic-template-action-btn-text, var(--yuzi-generic-template-resolved-text));
+
+    --yuzi-generic-template-resolved-backdrop: var(--yuzi-generic-template-backdrop-filter, var(--yuzi-generic-template-compat-backdrop, none));
+
+    /* ===== 由结构开关驱动的预设变量 ===== */
+    --yuzi-generic-template-resolved-gap-preset-xs: 4px;
+    --yuzi-generic-template-resolved-gap-preset-sm: 8px;
+    --yuzi-generic-template-resolved-gap-preset-md: 12px;
+    --yuzi-generic-template-resolved-gap-preset-lg: 16px;
+
+    --yuzi-generic-template-resolved-radius-preset-sm: 8px;
+    --yuzi-generic-template-resolved-radius-preset-md: 12px;
+    --yuzi-generic-template-resolved-radius-preset-lg: 16px;
+
+    --yuzi-generic-template-resolved-shadow-preset-sm: 0 4px 12px rgba(0, 0, 0, 0.12);
+    --yuzi-generic-template-resolved-shadow-preset-md: 0 8px 20px rgba(0, 0, 0, 0.16);
+    --yuzi-generic-template-resolved-shadow-preset-lg: 0 12px 30px rgba(0, 0, 0, 0.2);
+
+    /* ===== 最终可用变量：token 优先，preset 次之 ===== */
+    --yuzi-generic-template-resolved-gap-xs: var(--yuzi-generic-template-gap-xs, var(--yuzi-generic-template-resolved-gap-preset-xs));
+    --yuzi-generic-template-resolved-gap-sm: var(--yuzi-generic-template-gap-sm, var(--yuzi-generic-template-resolved-gap-preset-sm));
+    --yuzi-generic-template-resolved-gap-md: var(--yuzi-generic-template-gap-md, var(--yuzi-generic-template-resolved-gap-preset-md));
+    --yuzi-generic-template-resolved-gap-lg: var(--yuzi-generic-template-gap-lg, var(--yuzi-generic-template-resolved-gap-preset-lg));
+
+    --yuzi-generic-template-resolved-radius-sm: var(--yuzi-generic-template-radius-sm, var(--yuzi-generic-template-resolved-radius-preset-sm));
+    --yuzi-generic-template-resolved-radius-md: var(--yuzi-generic-template-radius-md, var(--yuzi-generic-template-resolved-radius-preset-md));
+    --yuzi-generic-template-resolved-radius-lg: var(--yuzi-generic-template-radius-lg, var(--yuzi-generic-template-resolved-radius-preset-lg));
+
+    --yuzi-generic-template-resolved-shadow-sm: var(--yuzi-generic-template-shadow-sm, var(--yuzi-generic-template-resolved-shadow-preset-sm));
+    --yuzi-generic-template-resolved-shadow-md: var(--yuzi-generic-template-shadow-md, var(--yuzi-generic-template-resolved-shadow-preset-md));
+    --yuzi-generic-template-resolved-shadow-lg: var(--yuzi-generic-template-shadow-lg, var(--yuzi-generic-template-resolved-shadow-preset-lg));
+
+    --yuzi-generic-template-resolved-accent: var(--yuzi-generic-template-accent, var(--yuzi-theme-accent, #5B7A6A));
+    --yuzi-generic-template-resolved-accent-strong: var(--yuzi-generic-template-accent-strong, var(--yuzi-generic-template-resolved-accent));
+    --yuzi-generic-template-resolved-accent-soft: var(--yuzi-generic-template-accent-soft, var(--yuzi-theme-accent-soft, rgba(91, 122, 106, 0.1)));
+    --yuzi-generic-template-resolved-accent-contrast: var(--yuzi-generic-template-accent-contrast, var(--yuzi-theme-text-inverse, #FFFFFF));
+    --yuzi-generic-template-resolved-accent-border: var(--yuzi-generic-template-accent-border, color-mix(in srgb, var(--yuzi-generic-template-resolved-accent) 22%, transparent));
+    --yuzi-generic-template-resolved-accent-shadow: var(--yuzi-generic-template-accent-shadow, color-mix(in srgb, var(--yuzi-generic-template-resolved-accent) 20%, transparent));
+    --yuzi-generic-template-resolved-success: var(--yuzi-generic-template-success, var(--yuzi-theme-success, #5B7A6A));
+    --yuzi-generic-template-resolved-warning: var(--yuzi-generic-template-warning, var(--yuzi-theme-warning, #A68B5B));
+    --yuzi-generic-template-resolved-danger: var(--yuzi-generic-template-danger, var(--yuzi-theme-danger, #8B5E5E));
+    --yuzi-generic-template-resolved-info: var(--yuzi-generic-template-info, var(--yuzi-generic-template-resolved-accent));
+    --yuzi-generic-template-resolved-panel-bg: var(--yuzi-generic-template-panel-bg, var(--yuzi-theme-surface-strong, rgba(245, 243, 239, 0.99)));
+    --yuzi-generic-template-resolved-panel-muted-bg: var(--yuzi-generic-template-panel-muted-bg, var(--yuzi-theme-surface-soft, rgba(245, 243, 239, 0.6)));
+    --yuzi-generic-template-resolved-panel-border-strong: var(--yuzi-generic-template-panel-border-strong, var(--yuzi-theme-border-strong, rgba(58, 55, 49, 0.12)));
+    --yuzi-generic-template-resolved-panel-divider: var(--yuzi-generic-template-panel-divider, color-mix(in srgb, var(--yuzi-generic-template-resolved-text) 14%, transparent));
+
+    --yuzi-generic-template-resolved-action-btn-radius: var(--yuzi-generic-template-resolved-radius-sm);
+    --yuzi-generic-template-resolved-action-btn-font-size: 12px;
+    --yuzi-generic-template-resolved-action-btn-pad-y: 5px;
+    --yuzi-generic-template-resolved-action-btn-pad-x: 10px;
+    --yuzi-generic-template-resolved-typo-nav-title-size: var(--yuzi-generic-template-typo-nav-title-size, 16px);
+    --yuzi-generic-template-resolved-typo-list-title-size: var(--yuzi-generic-template-typo-list-title-size, 14px);
+    --yuzi-generic-template-resolved-typo-list-preview-size: var(--yuzi-generic-template-typo-list-preview-size, 13px);
+    --yuzi-generic-template-resolved-typo-detail-key-size: var(--yuzi-generic-template-typo-detail-key-size, 11px);
+    --yuzi-generic-template-resolved-typo-detail-value-size: var(--yuzi-generic-template-typo-detail-value-size, 13px);
+    --yuzi-generic-template-resolved-typo-button-size: var(--yuzi-generic-template-typo-button-size, 13px);
+    --yuzi-generic-template-resolved-typo-chip-size: var(--yuzi-generic-template-typo-chip-size, 11px);
+    --yuzi-generic-template-resolved-motion-fast: var(--yuzi-generic-template-motion-fast, 0.18s);
+    --yuzi-generic-template-resolved-motion-normal: var(--yuzi-generic-template-motion-normal, 0.25s);
+
+    color: var(--yuzi-generic-template-resolved-text);
+    background: var(--yuzi-generic-template-resolved-page-bg);
+}
+
+/* ===== density ===== */
+.phone-generic-root.phone-generic-template-scope[data-layout-density="compact"] {
+    --yuzi-generic-template-resolved-gap-preset-xs: 2px;
+    --yuzi-generic-template-resolved-gap-preset-sm: 6px;
+    --yuzi-generic-template-resolved-gap-preset-md: 10px;
+    --yuzi-generic-template-resolved-gap-preset-lg: 12px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-density="loose"] {
+    --yuzi-generic-template-resolved-gap-preset-xs: 6px;
+    --yuzi-generic-template-resolved-gap-preset-sm: 10px;
+    --yuzi-generic-template-resolved-gap-preset-md: 14px;
+    --yuzi-generic-template-resolved-gap-preset-lg: 20px;
+}
+
+/* ===== radius ===== */
+.phone-generic-root.phone-generic-template-scope[data-layout-radius-level="none"] {
+    --yuzi-generic-template-resolved-radius-preset-sm: 0px;
+    --yuzi-generic-template-resolved-radius-preset-md: 0px;
+    --yuzi-generic-template-resolved-radius-preset-lg: 0px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-radius-level="sm"] {
+    --yuzi-generic-template-resolved-radius-preset-sm: 6px;
+    --yuzi-generic-template-resolved-radius-preset-md: 8px;
+    --yuzi-generic-template-resolved-radius-preset-lg: 10px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-radius-level="lg"] {
+    --yuzi-generic-template-resolved-radius-preset-sm: 10px;
+    --yuzi-generic-template-resolved-radius-preset-md: 14px;
+    --yuzi-generic-template-resolved-radius-preset-lg: 18px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-radius-level="xl"] {
+    --yuzi-generic-template-resolved-radius-preset-sm: 12px;
+    --yuzi-generic-template-resolved-radius-preset-md: 18px;
+    --yuzi-generic-template-resolved-radius-preset-lg: 24px;
+}
+
+/* ===== shadow ===== */
+.phone-generic-root.phone-generic-template-scope[data-layout-shadow-level="none"] {
+    --yuzi-generic-template-resolved-shadow-preset-sm: none;
+    --yuzi-generic-template-resolved-shadow-preset-md: none;
+    --yuzi-generic-template-resolved-shadow-preset-lg: none;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-shadow-level="mid"] {
+    --yuzi-generic-template-resolved-shadow-preset-sm: 0 6px 16px rgba(0, 0, 0, 0.16);
+    --yuzi-generic-template-resolved-shadow-preset-md: 0 10px 26px rgba(0, 0, 0, 0.2);
+    --yuzi-generic-template-resolved-shadow-preset-lg: 0 14px 34px rgba(0, 0, 0, 0.24);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-shadow-level="strong"] {
+    --yuzi-generic-template-resolved-shadow-preset-sm: 0 8px 18px rgba(0, 0, 0, 0.2);
+    --yuzi-generic-template-resolved-shadow-preset-md: 0 14px 32px rgba(0, 0, 0, 0.28);
+    --yuzi-generic-template-resolved-shadow-preset-lg: 0 20px 44px rgba(0, 0, 0, 0.32);
+}
+
+/* ===== 页面与导航 ===== */
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-nav {
+    background: var(--yuzi-generic-template-resolved-nav-bg);
+    border-bottom: 1px solid var(--yuzi-generic-template-resolved-nav-border);
+    backdrop-filter: var(--yuzi-generic-template-resolved-backdrop);
+    -webkit-backdrop-filter: var(--yuzi-generic-template-resolved-backdrop);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-nav-title {
+    color: var(--yuzi-generic-template-resolved-nav-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-nav-back {
+    color: var(--yuzi-generic-template-resolved-nav-back-text);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-nav-mode="transparent"] .phone-generic-slot-nav {
+    background: transparent;
+    border-bottom-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-nav-mode="solid"] .phone-generic-slot-nav {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-body {
+    background: var(--yuzi-generic-template-resolved-body-bg);
+    color: var(--yuzi-generic-template-resolved-text);
+    padding: var(--yuzi-generic-template-resolved-gap-md);
+    gap: var(--yuzi-generic-template-resolved-gap-md);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-page-mode="plain"] .phone-generic-slot-body {
+    padding-left: var(--yuzi-generic-template-resolved-gap-sm);
+    padding-right: var(--yuzi-generic-template-resolved-gap-sm);
+    box-shadow: none;
+}
+
+/* ===== 列表容器 ===== */
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--yuzi-generic-template-resolved-list-bg);
+    border: 1px solid var(--yuzi-generic-template-resolved-list-border);
+    border-radius: var(--yuzi-generic-template-resolved-radius-md);
+    box-shadow: var(--yuzi-generic-template-resolved-shadow-md);
+    overflow: hidden;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-container-mode="plain"] .phone-generic-slot-list {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-container-mode="table"] .phone-generic-slot-list {
+    border-radius: var(--yuzi-generic-template-resolved-radius-sm);
+}
+
+/* ===== 列表条目 ===== */
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item {
+    border: none;
+    border-bottom: 1px solid var(--yuzi-generic-template-resolved-list-border);
+    border-radius: 0;
+    background: var(--yuzi-generic-template-resolved-list-item-bg);
+    color: var(--yuzi-generic-template-resolved-list-item-text);
+    box-sizing: border-box;
+    padding: calc(var(--yuzi-generic-template-resolved-gap-sm) + 2px) var(--yuzi-generic-template-resolved-gap-md);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item:last-child {
+    border-bottom: none;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-show-list-divider="0"] .phone-generic-slot-list-item {
+    border-bottom: none;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item:hover,
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item:active {
+    background: var(--yuzi-generic-template-resolved-list-item-hover-bg);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-main,
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-meta,
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-arrow {
+    color: var(--yuzi-generic-template-resolved-list-item-text);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-item-mode="compact"] .phone-generic-slot-list-item {
+    padding: var(--yuzi-generic-template-resolved-gap-sm) var(--yuzi-generic-template-resolved-gap-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-item-mode="compact"] .phone-generic-slot-list-main {
+    font-size: 13px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-item-mode="card"] .phone-generic-slot-list {
+    gap: var(--yuzi-generic-template-resolved-gap-sm);
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-item-mode="card"] .phone-generic-slot-list-item {
+    border: 1px solid var(--yuzi-generic-template-resolved-list-border);
+    border-radius: var(--yuzi-generic-template-resolved-radius-md);
+    background: var(--yuzi-generic-template-resolved-list-bg);
+    box-shadow: var(--yuzi-generic-template-resolved-shadow-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-meta-mode="hidden"] .phone-generic-slot-list-meta {
+    display: none;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-meta-mode="stacked"] .phone-generic-slot-list-side {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--yuzi-generic-template-resolved-gap-xs);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-list-meta-mode="stacked"] .phone-generic-slot-list-meta {
+    font-size: 11px;
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+/* ===== 详情容器 ===== */
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yuzi-generic-template-resolved-gap-sm);
+    background: var(--yuzi-generic-template-resolved-detail-bg);
+    border: 1px solid var(--yuzi-generic-template-resolved-detail-border);
+    border-radius: var(--yuzi-generic-template-resolved-radius-md);
+    box-shadow: var(--yuzi-generic-template-resolved-shadow-sm);
+    padding: var(--yuzi-generic-template-resolved-gap-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-container-mode="plain"] .phone-generic-slot-detail {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-container-mode="table"] .phone-generic-slot-detail {
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yuzi-generic-template-resolved-gap-xs);
+    padding: var(--yuzi-generic-template-resolved-gap-sm);
+    background: var(--yuzi-generic-template-resolved-detail-field-bg);
+    border: 1px solid var(--yuzi-generic-template-resolved-detail-field-border);
+    border-radius: var(--yuzi-generic-template-resolved-radius-sm);
+    box-shadow: var(--yuzi-generic-template-resolved-shadow-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-container-mode="table"] .phone-generic-slot-detail-field {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid var(--yuzi-generic-template-resolved-detail-field-border);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-container-mode="table"] .phone-generic-slot-detail-field:last-child {
+    border-bottom: none;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-show-detail-divider="0"] .phone-generic-slot-detail-field {
+    border-bottom-color: transparent;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-key {
+    color: var(--yuzi-generic-template-resolved-detail-key-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-value,
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-input {
+    color: var(--yuzi-generic-template-resolved-detail-value-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-input {
+    border-color: var(--yuzi-generic-template-resolved-detail-field-border);
+    background: var(--yuzi-generic-template-resolved-detail-field-bg);
+    border-radius: var(--yuzi-generic-template-resolved-radius-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="inline"] .phone-generic-slot-detail-field {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="inline"] .phone-row-detail-key {
+    min-width: 40%;
+    margin-right: var(--yuzi-generic-template-resolved-gap-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="inline"] .phone-row-detail-value {
+    text-align: right;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="grid-2"] .phone-generic-slot-detail,
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="grid-3"] .phone-generic-slot-detail {
+    display: grid;
+    gap: var(--yuzi-generic-template-resolved-gap-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="grid-2"] .phone-generic-slot-detail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="grid-3"] .phone-generic-slot-detail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-detail-group-mode="flat"] .phone-generic-slot-detail-field {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* ===== 操作区与按钮 ===== */
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-actions {
+    gap: var(--yuzi-generic-template-resolved-gap-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-action-bar-mode="hidden"] .phone-generic-slot-actions {
+    display: none !important;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-action-bar-mode="sticky"] .phone-generic-slot-actions {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: var(--yuzi-generic-template-resolved-gap-xs) 0;
+    background: linear-gradient(to bottom, var(--yuzi-generic-template-resolved-body-bg) 70%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-settings-btn,
+.phone-generic-root.phone-generic-template-scope .phone-cell-lock-btn,
+.phone-generic-root.phone-generic-template-scope .phone-row-lock-chip {
+    background: var(--yuzi-generic-template-resolved-action-btn-bg);
+    border-color: var(--yuzi-generic-template-resolved-action-btn-border);
+    color: var(--yuzi-generic-template-resolved-action-btn-text);
+    border-radius: var(--yuzi-generic-template-resolved-action-btn-radius);
+    font-size: var(--yuzi-generic-template-resolved-action-btn-font-size);
+    padding: var(--yuzi-generic-template-resolved-action-btn-pad-y) var(--yuzi-generic-template-resolved-action-btn-pad-x);
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-button-shape="pill"] {
+    --yuzi-generic-template-resolved-action-btn-radius: 999px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-button-shape="square"] {
+    --yuzi-generic-template-resolved-action-btn-radius: 0px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-button-size="xs"] {
+    --yuzi-generic-template-resolved-action-btn-font-size: 11px;
+    --yuzi-generic-template-resolved-action-btn-pad-y: 3px;
+    --yuzi-generic-template-resolved-action-btn-pad-x: 8px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-button-size="md"] {
+    --yuzi-generic-template-resolved-action-btn-font-size: 13px;
+    --yuzi-generic-template-resolved-action-btn-pad-y: 6px;
+    --yuzi-generic-template-resolved-action-btn-pad-x: 12px;
+}
+
+.phone-generic-root.phone-generic-template-scope[data-layout-button-size="lg"] {
+    --yuzi-generic-template-resolved-action-btn-font-size: 14px;
+    --yuzi-generic-template-resolved-action-btn-pad-y: 8px;
+    --yuzi-generic-template-resolved-action-btn-pad-x: 14px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-table-detail-lock-hint {
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-empty-msg {
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+/* ===== SaaS 默认骨架增强 ===== */
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-nav {
+    position: sticky;
+    top: 0;
+    z-index: 16;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-nav-back:hover {
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-table-navigation-btn {
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-table-navigation-btn:hover,
+.phone-generic-root.phone-generic-template-scope .phone-generic-table-navigation-btn:focus-visible {
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-table-navigation-btn:disabled,
+.phone-generic-root.phone-generic-template-scope .phone-generic-table-navigation-btn:disabled:hover {
+    background: transparent;
+    color: var(--yuzi-generic-template-resolved-muted-text);
+    opacity: 0.42;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-nav-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    min-width: 42px;
+    padding: 0 9px;
+    border-radius: 999px;
+    border: 1px solid var(--yuzi-generic-template-resolved-action-btn-border);
+    background: var(--yuzi-generic-template-resolved-action-btn-bg);
+    color: var(--yuzi-generic-template-resolved-muted-text);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    transition: border-color var(--yuzi-generic-template-resolved-motion-fast) ease, background var(--yuzi-generic-template-resolved-motion-fast) ease, color var(--yuzi-generic-template-resolved-motion-fast) ease, opacity var(--yuzi-generic-template-resolved-motion-fast) ease;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-nav-delete-btn:hover,
+.phone-generic-root.phone-generic-template-scope .phone-generic-nav-delete-btn.is-active {
+    border-color: var(--yuzi-generic-template-resolved-accent-border);
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-nav-delete-btn.is-danger {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 22%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 8%, transparent);
+    color: var(--yuzi-generic-template-resolved-danger);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-nav-delete-btn.is-danger:hover {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 36%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 14%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-nav-delete-btn:disabled,
+.phone-generic-root.phone-generic-template-scope .phone-generic-nav-delete-btn:disabled:hover {
+    border-color: var(--yuzi-generic-template-resolved-action-btn-border);
+    background: var(--yuzi-generic-template-resolved-action-btn-bg);
+    color: var(--yuzi-generic-template-resolved-muted-text);
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--yuzi-generic-template-resolved-gap-lg);
+    padding: var(--yuzi-generic-template-resolved-gap-lg);
+    padding-bottom: calc(var(--yuzi-generic-template-resolved-gap-lg) + 78px);
+    overflow-anchor: none;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-page-shell,
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yuzi-generic-template-resolved-gap-lg);
+    min-width: 0;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-card,
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-section {
+    border: 1px solid var(--yuzi-generic-template-resolved-panel-border-strong);
+    border-radius: var(--yuzi-generic-template-resolved-radius-lg);
+    background: var(--yuzi-generic-template-resolved-panel-bg);
+    box-shadow: var(--yuzi-generic-template-resolved-shadow-sm);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: var(--yuzi-generic-template-resolved-gap-md) var(--yuzi-generic-template-resolved-gap-lg);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-main,
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-info,
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-section-head,
+.phone-generic-root.phone-generic-template-scope .phone-generic-field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-section-head,
+.phone-generic-root.phone-generic-template-scope .phone-generic-field-header {
+    align-items: flex-start;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-info {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-search-control {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-search-control.is-hidden {
+    display: none;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-search-label,
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--yuzi-generic-template-resolved-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-section-label {
+    font-size: 16px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-search-input {
+    width: 100%;
+    min-height: 40px;
+    box-sizing: border-box;
+    border: 1px solid var(--yuzi-generic-template-resolved-detail-field-border) !important;
+    border-radius: 12px;
+    background: var(--yuzi-generic-template-resolved-detail-bg) !important;
+    background-color: var(--yuzi-generic-template-resolved-detail-bg) !important;
+    color: var(--yuzi-generic-template-resolved-text) !important;
+    -webkit-text-fill-color: var(--yuzi-generic-template-resolved-text) !important;
+    caret-color: var(--yuzi-generic-template-resolved-text);
+    box-shadow: none;
+    padding: 0 14px;
+    font-size: 13px;
+    appearance: none;
+    opacity: 1;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-search-input:focus {
+    outline: none;
+    border-color: var(--yuzi-generic-template-resolved-accent) !important;
+    box-shadow: 0 0 0 3px var(--yuzi-generic-template-resolved-accent-soft);
+    background: var(--yuzi-generic-template-resolved-detail-bg) !important;
+    background-color: var(--yuzi-generic-template-resolved-detail-bg) !important;
+    color: var(--yuzi-generic-template-resolved-text) !important;
+    -webkit-text-fill-color: var(--yuzi-generic-template-resolved-text) !important;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-search-input::placeholder {
+    color: var(--yuzi-generic-template-resolved-muted-text) !important;
+    -webkit-text-fill-color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-search-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background: var(--yuzi-generic-template-resolved-detail-bg) !important;
+    background-color: var(--yuzi-generic-template-resolved-detail-bg) !important;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-actions {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-btn,
+.phone-generic-root.phone-generic-template-scope .phone-generic-empty-action {
+    border: 1px solid var(--yuzi-generic-template-resolved-action-btn-border);
+    background: var(--yuzi-generic-template-resolved-action-btn-bg);
+    color: var(--yuzi-generic-template-resolved-action-btn-text);
+    border-radius: 12px;
+    transition: border-color var(--yuzi-generic-template-resolved-motion-fast) ease, background var(--yuzi-generic-template-resolved-motion-fast) ease, color var(--yuzi-generic-template-resolved-motion-fast) ease, transform var(--yuzi-generic-template-resolved-motion-fast) ease;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-btn,
+.phone-generic-root.phone-generic-template-scope .phone-generic-empty-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-btn:hover,
+.phone-generic-root.phone-generic-template-scope .phone-generic-empty-action:hover {
+    border-color: var(--yuzi-generic-template-resolved-accent-border);
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-sort-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 11px;
+    border-radius: 999px;
+    font-size: 11px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-sort-btn:not(.is-active) .phone-generic-sort-down,
+.phone-generic-root.phone-generic-template-scope .phone-generic-sort-btn.is-active .phone-generic-sort-up {
+    opacity: 0.3;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-btn.is-active,
+.phone-generic-root.phone-generic-template-scope .phone-generic-sort-btn[aria-pressed="true"] {
+    border-color: var(--yuzi-generic-template-resolved-accent-border);
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-btn:disabled {
+    opacity: 0.56;
+    cursor: not-allowed;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-btn:disabled:hover {
+    border-color: var(--yuzi-generic-template-resolved-action-btn-border);
+    background: var(--yuzi-generic-template-resolved-action-btn-bg);
+    color: var(--yuzi-generic-template-resolved-action-btn-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-field-lock-state,
+.phone-generic-root.phone-generic-template-scope .phone-generic-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: var(--yuzi-generic-template-resolved-typo-chip-size);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-result-pill {
+    border: none;
+    background: transparent;
+    padding: 0;
+    align-self: flex-start;
+    font-size: var(--yuzi-generic-template-resolved-typo-chip-size);
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-status-chip.is-neutral {
+    border: 1px solid color-mix(in srgb, var(--yuzi-generic-template-resolved-muted-text) 20%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-muted-text) 12%, transparent);
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-status-chip.is-success {
+    border: 1px solid color-mix(in srgb, var(--yuzi-generic-template-resolved-success) 18%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-success) 12%, transparent);
+    color: var(--yuzi-generic-template-resolved-success);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-status-chip.is-warning,
+.phone-generic-root.phone-generic-template-scope .phone-generic-field-lock-state {
+    border: 1px solid color-mix(in srgb, var(--yuzi-generic-template-resolved-warning) 18%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-warning) 10%, transparent);
+    color: var(--yuzi-generic-template-resolved-warning);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-status-chip.is-danger {
+    border: 1px solid color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 18%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 10%, transparent);
+    color: var(--yuzi-generic-template-resolved-danger);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-status-chip.is-info {
+    border: 1px solid color-mix(in srgb, var(--yuzi-generic-template-resolved-info) 18%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-info) 10%, transparent);
+    color: var(--yuzi-generic-template-resolved-info);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-section-desc,
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-preview,
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-time {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-panel {
+    overflow: hidden;
+    border: 1px solid var(--yuzi-generic-template-resolved-panel-border-strong);
+    border-radius: var(--yuzi-generic-template-resolved-radius-lg);
+    background: var(--yuzi-generic-template-resolved-list-bg);
+    box-shadow: var(--yuzi-generic-template-resolved-shadow-md);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--yuzi-generic-template-resolved-list-border);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--yuzi-generic-template-resolved-panel-bg) 92%, transparent) 0%, color-mix(in srgb, var(--yuzi-generic-template-resolved-panel-muted-bg) 88%, transparent) 100%);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-header-main {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-header-side {
+    min-width: 110px;
+    text-align: right;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-panel .phone-generic-slot-list {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between !important;
+    gap: 16px;
+    min-height: 84px;
+    text-align: left;
+    transition: background var(--yuzi-generic-template-resolved-motion-fast) ease, border-color var(--yuzi-generic-template-resolved-motion-fast) ease;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item.is-row-locked {
+    opacity: 0.74;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item.is-delete-selected {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 24%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 6%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item.is-delete-selected .phone-generic-slot-list-main {
+    color: var(--yuzi-generic-template-resolved-danger);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-item-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-item-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-index {
+    flex-shrink: 0;
+    min-width: 34px;
+    font-size: calc(12px * var(--yuzi-phone-readable-text-scale, 1));
+    font-family: Consolas, 'SFMono-Regular', monospace;
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-main {
+    min-width: 0;
+    font-size: calc(var(--yuzi-generic-template-resolved-typo-list-title-size) * var(--yuzi-phone-readable-text-scale, 1));
+    font-weight: 700;
+    line-height: 1.45;
+    color: var(--yuzi-generic-template-resolved-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-badges {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-preview {
+    display: block;
+    font-size: calc(var(--yuzi-generic-template-resolved-typo-list-preview-size) * var(--yuzi-phone-readable-text-scale, 1));
+    line-height: 1.6;
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-side {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+    align-self: center;
+    align-items: flex-end;
+    gap: 4px;
+    min-width: 0;
+    max-width: 40%;
+    overflow-wrap: anywhere;
+    flex-shrink: 0;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-list-side-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-select-circle {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 34%, transparent);
+    background: var(--yuzi-generic-template-resolved-action-btn-bg);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-select-circle:hover,
+.phone-generic-root.phone-generic-template-scope .phone-row-select-circle:focus-visible {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 58%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 8%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-select-circle.is-selected {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 72%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 16%, transparent);
+    color: var(--yuzi-generic-template-resolved-danger);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-select-circle.disabled {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-muted-text) 22%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-action-btn-bg) 72%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 24px;
+    border: 1px dashed var(--yuzi-generic-template-resolved-panel-border-strong);
+    border-radius: var(--yuzi-generic-template-resolved-radius-lg);
+    background: var(--yuzi-generic-template-resolved-panel-muted-bg);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-empty-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--yuzi-generic-template-resolved-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-empty-desc {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-page {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-page-flow {
+    gap: 0;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-flow-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-flow-list .phone-generic-slot-detail-field {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--yuzi-generic-template-resolved-detail-field-border);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-flow-list .phone-generic-slot-detail-field:last-child {
+    border-bottom: none;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-flow-list .phone-generic-slot-detail-field:hover {
+    background: transparent;
+    box-shadow: none;
+    border-bottom-color: var(--yuzi-generic-template-resolved-detail-field-border);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-detail-flow-list .phone-generic-slot-detail-field.is-locked {
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-warning) 4%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-warning) 18%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-detail-field {
+    min-width: 0;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-detail-field:hover {
+    border-color: var(--yuzi-generic-template-resolved-accent-border);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--yuzi-generic-template-resolved-accent) 6%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-detail-field.is-locked {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-warning) 18%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-warning) 6%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-detail-field.is-long-content {
+    grid-column: 1 / -1;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-key {
+    font-size: calc(var(--yuzi-generic-template-resolved-typo-detail-key-size) * var(--yuzi-phone-readable-text-scale, 1));
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-value {
+    font-size: calc(var(--yuzi-generic-template-resolved-typo-detail-value-size) * var(--yuzi-phone-readable-text-scale, 1));
+    line-height: 1.78;
+    color: var(--yuzi-generic-template-resolved-detail-value-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-input {
+    width: 100%;
+    min-height: 88px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    border: 1px solid var(--yuzi-generic-template-resolved-detail-field-border) !important;
+    border-radius: 12px;
+    background: var(--yuzi-generic-template-resolved-detail-bg) !important;
+    color: var(--yuzi-generic-template-resolved-detail-value-text) !important;
+    -webkit-text-fill-color: var(--yuzi-generic-template-resolved-detail-value-text) !important;
+    caret-color: var(--yuzi-generic-template-resolved-detail-value-text);
+    font-size: calc(var(--yuzi-generic-template-resolved-typo-detail-value-size) * var(--yuzi-phone-readable-text-scale, 1));
+    line-height: 1.65;
+    resize: vertical;
+    appearance: none;
+    opacity: 1;
+    transition: border-color var(--yuzi-generic-template-resolved-motion-fast) ease, box-shadow var(--yuzi-generic-template-resolved-motion-fast) ease;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-input:focus {
+    outline: none;
+    border-color: var(--yuzi-generic-template-resolved-accent) !important;
+    box-shadow: 0 0 0 3px var(--yuzi-generic-template-resolved-accent-soft);
+    background: var(--yuzi-generic-template-resolved-detail-bg) !important;
+    color: var(--yuzi-generic-template-resolved-detail-value-text) !important;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-input::placeholder {
+    color: var(--yuzi-generic-template-resolved-muted-text) !important;
+    -webkit-text-fill-color: var(--yuzi-generic-template-resolved-muted-text);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-detail-field.is-long-content .phone-row-detail-input,
+.phone-generic-root.phone-generic-template-scope .phone-generic-slot-detail-field.is-long-content .phone-row-detail-value {
+    min-height: 120px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-row-detail-tools {
+    justify-content: flex-end;
+    margin-top: 6px;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-list-bottom-bar,
+.phone-generic-root.phone-generic-template-scope .phone-detail-bottom-bar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--yuzi-generic-template-resolved-panel-muted-bg) 88%, transparent) 0%, color-mix(in srgb, var(--yuzi-generic-template-resolved-panel-bg) 94%, transparent) 100%);
+    border-top: 1px solid var(--yuzi-generic-template-resolved-panel-border-strong);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 -10px 24px color-mix(in srgb, var(--yuzi-generic-template-resolved-text) 12%, transparent);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-list-bottom-btn,
+.phone-generic-root.phone-generic-template-scope .phone-detail-bottom-btn {
+    min-width: 0;
+    min-height: 42px;
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--yuzi-generic-template-resolved-action-btn-border);
+    background: var(--yuzi-generic-template-resolved-action-btn-bg);
+    color: var(--yuzi-generic-template-resolved-action-btn-text);
+    font-size: var(--yuzi-generic-template-resolved-typo-button-size);
+    font-weight: 700;
+    transition: border-color var(--yuzi-generic-template-resolved-motion-fast) ease, background var(--yuzi-generic-template-resolved-motion-fast) ease, color var(--yuzi-generic-template-resolved-motion-fast) ease;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-list-bottom-btn:hover,
+.phone-generic-root.phone-generic-template-scope .phone-detail-bottom-btn:hover {
+    border-color: var(--yuzi-generic-template-resolved-accent-border);
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-list-bottom-btn.active,
+.phone-generic-root.phone-generic-template-scope .phone-detail-bottom-btn.active {
+    border-color: var(--yuzi-generic-template-resolved-accent-border);
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+}
+
+.phone-generic-root.phone-generic-template-scope #phone-list-delete-btn.active {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 20%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-danger) 10%, transparent);
+    color: var(--yuzi-generic-template-resolved-danger);
+}
+
+.phone-generic-root.phone-generic-template-scope #phone-cell-lock-mode-btn.active {
+    border-color: color-mix(in srgb, var(--yuzi-generic-template-resolved-warning) 20%, transparent);
+    background: color-mix(in srgb, var(--yuzi-generic-template-resolved-warning) 10%, transparent);
+    color: var(--yuzi-generic-template-resolved-warning);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-detail-bottom-btn:disabled,
+.phone-generic-root.phone-generic-template-scope .phone-list-bottom-btn:disabled {
+    opacity: 0.52;
+    cursor: not-allowed;
+}
+
+@container yuzi-phone-screen (max-width: 900px) {
+    .phone-generic-root.phone-generic-template-scope .phone-generic-detail-page {
+        gap: var(--yuzi-generic-template-resolved-gap-md);
+    }
+}
+
+@container yuzi-phone-screen (max-width: 640px) {
+    .phone-generic-root.phone-generic-template-scope .phone-generic-slot-body {
+        padding: var(--yuzi-generic-template-resolved-gap-md);
+        padding-bottom: calc(var(--yuzi-generic-template-resolved-gap-md) + 92px);
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-generic-toolbar-card,
+    .phone-generic-root.phone-generic-template-scope .phone-generic-detail-section {
+        border-radius: var(--yuzi-generic-template-resolved-radius-md);
+        padding: 14px;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-generic-detail-section-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-generic-list-panel {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-generic-list-header {
+        display: none;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-generic-list-panel .phone-generic-slot-list {
+        gap: 10px;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item,
+    .phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-item:last-child {
+        gap: 12px;
+        min-height: auto;
+        border: none;
+        border-radius: 16px;
+        background: var(--yuzi-generic-template-resolved-panel-bg);
+        box-shadow: var(--yuzi-generic-template-resolved-shadow-sm);
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-generic-detail-page {
+        gap: 12px;
+    }
+
+    .phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="grid-2"] .phone-generic-slot-detail,
+    .phone-generic-root.phone-generic-template-scope[data-layout-detail-field-layout="grid-3"] .phone-generic-slot-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-list-bottom-bar {
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
+        grid-template-columns: none;
+        gap: 8px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-detail-bottom-bar {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-list-bottom-btn,
+    .phone-generic-root.phone-generic-template-scope .phone-detail-bottom-btn {
+        min-height: 44px;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-list-bottom-bar #phone-list-add-btn,
+    .phone-generic-root.phone-generic-template-scope .phone-detail-bottom-bar #phone-save-row:not(:disabled) {
+        border-color: var(--yuzi-generic-template-resolved-accent);
+        background: var(--yuzi-generic-template-resolved-accent);
+        color: var(--yuzi-generic-template-resolved-accent-contrast);
+        box-shadow: 0 8px 18px var(--yuzi-generic-template-resolved-accent-shadow);
+    }
+}
+
+@container yuzi-phone-screen (max-width: 520px) {
+    .phone-generic-root.phone-generic-template-scope .phone-generic-list-index {
+        min-width: 28px;
+    }
+
+    .phone-generic-root.phone-generic-template-scope .phone-generic-slot-list-arrow,
+    .phone-generic-root.phone-generic-template-scope .phone-row-lock-chip {
+        min-width: 52px;
+    }
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-detail-pager-bar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    pointer-events: none;
+    background: transparent;
+    border: 0;
+    transform: translateY(-18px);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-detail-pager-btn {
+    color: var(--yuzi-generic-template-resolved-action-btn-text);
+    user-select: none;
+    pointer-events: auto;
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-detail-pager-btn:hover:not(:disabled) {
+    background: var(--yuzi-generic-template-resolved-accent-soft);
+    color: var(--yuzi-generic-template-resolved-accent-strong);
+}
+
+.phone-generic-root.phone-generic-template-scope .phone-detail-pager-btn:disabled {
+    opacity: 0.42;
+}

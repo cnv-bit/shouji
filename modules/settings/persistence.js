@@ -1,0 +1,268 @@
+import { Logger } from '../error-handler.js';
+
+const logger = Logger.withScope({ scope: 'settings/persistence', feature: 'settings' });
+
+export function createSettingsPersistenceTools(options = {}) {
+    const {
+        getContext,
+        ensureNamespace,
+        validateSetting,
+        defaultSettings,
+        extensionName,
+        clone,
+        showNotification,
+        onSettingChanged,
+    } = options;
+
+    const SAVE_SETTINGS_DEBOUNCE_CONFIG = {
+        delay: 300,
+        maxWait: 2000,
+        leading: false,
+        trailing: true,
+    };
+
+    let saveSettingsDebounceTimer = null;
+    let saveSettingsMaxWaitTimer = null;
+    let saveSettingsPendingCtx = null;
+
+    function clearScheduledSettingsSaveTimers() {
+        if (saveSettingsDebounceTimer !== null) {
+            window.clearTimeout(saveSettingsDebounceTimer);
+            saveSettingsDebounceTimer = null;
+        }
+        if (saveSettingsMaxWaitTimer !== null) {
+            window.clearTimeout(saveSettingsMaxWaitTimer);
+            saveSettingsMaxWaitTimer = null;
+        }
+    }
+
+    function executeSaveSettings(ctx) {
+        clearScheduledSettingsSaveTimers();
+        saveSettingsPendingCtx = null;
+
+        if (!ctx || typeof ctx.saveSettingsDebounced !== 'function') {
+            logger.warn({
+                action: 'persist.execute',
+                message: '无法保存设置：上下文不可用',
+            });
+            return;
+        }
+
+        try {
+            ctx.saveSettingsDebounced();
+            logger.debug({
+                action: 'persist.execute',
+                message: '已触发宿主设置保存请求',
+            });
+        } catch (error) {
+            logger.error({
+                action: 'persist.execute',
+                message: '保存设置失败',
+                error,
+            });
+            showNotification?.('保存设置失败', 'error');
+        }
+    }
+
+    function schedulePersistSettings(ctx, delay = SAVE_SETTINGS_DEBOUNCE_CONFIG.delay) {
+        if (!ctx || typeof ctx.saveSettingsDebounced !== 'function') {
+            logger.warn({
+                action: 'persist.schedule',
+                message: '无法保存设置：上下文不可用',
+            });
+            return;
+        }
+
+        saveSettingsPendingCtx = ctx;
+
+        if (saveSettingsDebounceTimer !== null) {
+            window.clearTimeout(saveSettingsDebounceTimer);
+        }
+
+        saveSettingsDebounceTimer = window.setTimeout(() => {
+            saveSettingsDebounceTimer = null;
+            executeSaveSettings(saveSettingsPendingCtx);
+        }, delay);
+
+        if (saveSettingsMaxWaitTimer === null) {
+            saveSettingsMaxWaitTimer = window.setTimeout(() => {
+                saveSettingsMaxWaitTimer = null;
+                if (saveSettingsPendingCtx) {
+                    executeSaveSettings(saveSettingsPendingCtx);
+                }
+            }, SAVE_SETTINGS_DEBOUNCE_CONFIG.maxWait);
+        }
+    }
+
+    function flushPhoneSettingsSave() {
+        const ctx = typeof getContext === 'function' ? getContext() : null;
+        clearScheduledSettingsSaveTimers();
+        saveSettingsPendingCtx = null;
+
+        if (!ctx || typeof ctx.saveSettingsDebounced !== 'function') {
+            logger.warn({
+                action: 'persist.flush',
+                message: '无法触发宿主设置保存请求：上下文不可用',
+            });
+            return false;
+        }
+
+        try {
+            ctx.saveSettingsDebounced();
+            logger.info({
+                action: 'persist.flush',
+                message: '已清理本扩展待保存任务并触发宿主设置保存请求',
+            });
+            return true;
+        } catch (error) {
+            logger.error({
+                action: 'persist.flush',
+                message: '触发宿主设置保存请求失败',
+                error,
+            });
+            showNotification?.('保存设置失败', 'error');
+        }
+        return false;
+    }
+
+    function savePhoneSetting(key, value) {
+        try {
+            const ctx = typeof getContext === 'function' ? getContext() : null;
+            const settings = typeof ensureNamespace === 'function' ? ensureNamespace() : null;
+
+            if (!ctx?.extensionSettings || !settings) {
+                logger.warn({
+                    action: 'setting.save',
+                    message: '无法保存设置：上下文或命名空间不可用',
+                    context: { key },
+                });
+                return false;
+            }
+
+            const result = validateSetting(key, value);
+            if (result.removed) {
+                delete settings[key];
+                schedulePersistSettings(ctx);
+                return true;
+            }
+            if (!result.valid) {
+                logger.warn({
+                    action: 'setting.validate',
+                    message: '设置验证失败',
+                    context: { key, validationError: result.error },
+                });
+                showNotification?.(`设置验证失败: ${result.error}`, 'warning');
+            }
+
+            settings[key] = result.value;
+            onSettingChanged?.(key);
+            schedulePersistSettings(ctx);
+            return true;
+        } catch (error) {
+            logger.error({
+                action: 'setting.save',
+                message: '保存设置失败',
+                context: { key },
+                error,
+            });
+            showNotification?.('保存设置失败', 'error');
+            return false;
+        }
+    }
+
+    function savePhoneSettingsPatch(patch = {}) {
+        try {
+            const ctx = typeof getContext === 'function' ? getContext() : null;
+            const settings = typeof ensureNamespace === 'function' ? ensureNamespace() : null;
+            if (!ctx?.extensionSettings || !settings) {
+                logger.warn({
+                    action: 'settings.patch',
+                    message: '无法批量保存设置：上下文或命名空间不可用',
+                });
+                return false;
+            }
+
+            if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+                logger.warn({
+                    action: 'settings.patch.validate',
+                    message: '批量设置验证失败：patch 必须是对象',
+                    context: { patchType: Array.isArray(patch) ? 'array' : typeof patch },
+                });
+                showNotification?.('批量设置保存失败：数据格式错误', 'warning');
+                return false;
+            }
+
+            const entries = Object.entries(patch);
+            if (entries.length === 0) {
+                return true;
+            }
+
+            let hasInvalid = false;
+            entries.forEach(([key, value]) => {
+                const result = validateSetting(key, value);
+                if (result.removed) {
+                    delete settings[key];
+                    return;
+                }
+                if (!result.valid) {
+                    hasInvalid = true;
+                    logger.warn({
+                        action: 'settings.patch.validate',
+                        message: '批量设置项验证失败，已写入归一化值',
+                        context: { key, validationError: result.error },
+                    });
+                }
+                settings[key] = result.value;
+                onSettingChanged?.(key);
+            });
+
+            if (hasInvalid) {
+                showNotification?.('部分设置已按默认规则修正', 'warning');
+            }
+
+            schedulePersistSettings(ctx);
+            return !hasInvalid;
+        } catch (error) {
+            logger.error({
+                action: 'settings.patch',
+                message: '批量保存设置失败',
+                error,
+            });
+            showNotification?.('保存设置失败', 'error');
+            return false;
+        }
+    }
+
+    function resetPhoneSettingsToDefault() {
+        try {
+            const ctx = typeof getContext === 'function' ? getContext() : null;
+            if (!ctx?.extensionSettings) {
+                logger.warn({
+                    action: 'settings.reset',
+                    message: '无法重置设置：上下文不可用',
+                });
+                return false;
+            }
+
+            ctx.extensionSettings[extensionName] = clone(defaultSettings);
+            onSettingChanged?.();
+            schedulePersistSettings(ctx);
+            return true;
+        } catch (error) {
+            logger.error({
+                action: 'settings.reset',
+                message: '重置设置失败',
+                error,
+            });
+            showNotification?.('重置设置失败', 'error');
+            return false;
+        }
+    }
+
+    return {
+        flushPhoneSettingsSave,
+        savePhoneSetting,
+        savePhoneSettingsPatch,
+        resetPhoneSettingsToDefault,
+    };
+}

@@ -1,0 +1,26 @@
+{
+  "name": "st-yuzi-qq-only",
+  "version": "2.3.0",
+  "description": "小手机 Shell、设置 App 与完整 QQ 的 SillyTavern 独立扩展",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "build:dev": "node build.mjs --dev",
+    "build:watch": "node build.mjs --watch",
+    "check": "node scripts/run-contract-checks.cjs",
+    "check:ci": "node scripts/run-contract-checks-ci.cjs",
+    "check:qq-v1-removal": "node scripts/check-qq-v1-removal-contract.cjs",
+    "lint": "eslint modules/ index.js build.mjs",
+    "tables:split": "node scripts/table-source.cjs split docs/reference/小剧场2.1.json tables/sources/小剧场2.1",
+    "tables:check": "node scripts/table-source.cjs check tables/sources/小剧场2.1 && node scripts/table-source.cjs check tables/sources/纪要",
+    "tables:build": "node scripts/table-source.cjs build tables/sources/小剧场2.1 tables/generated/小剧场2.1.json && node scripts/table-source.cjs build tables/sources/纪要 tables/generated/纪要.json && node scripts/build-builtin-theater-template.cjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0",
+    "eslint": "^8.57.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

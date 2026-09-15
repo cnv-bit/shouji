@@ -1,0 +1,127 @@
+const fs = require('fs');
+const path = require('path');
+
+const ROOT = process.cwd();
+
+const FILES = {
+    controller: 'modules/table-viewer/list-page-controller.js',
+    renderer: 'modules/table-viewer/list-page-renderer.js',
+    template: 'modules/table-viewer/list-page-template.js',
+    runtime: 'modules/table-viewer/generic-runtime.js',
+};
+
+function read(relativePath) {
+    return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+}
+
+function has(content, snippet) {
+    return content.includes(snippet);
+}
+
+function check(results, fileKey, description, ok) {
+    results.push({ file: FILES[fileKey], description, ok });
+}
+
+function main() {
+    const contents = Object.fromEntries(
+        Object.entries(FILES).map(([key, relativePath]) => [key, read(relativePath)])
+    );
+
+    const assert = require('node:assert/strict');
+    const vm = require('node:vm');
+    const applySource = contents.controller.slice(
+        contents.controller.indexOf('    const applySearchQuery ='),
+        contents.controller.indexOf('    const addListener =', contents.controller.indexOf('    const applySearchQuery =')),
+    );
+    for (const [deleteManageMode, selected, expectedCalls, expectedSelection] of [
+        [false, [1, 2], 0, [1, 2]], [true, [], 0, []], [true, [1, 2], 1, [2]],
+    ]) {
+        let calls = 0;
+        const state = { deleteManageMode, selectedDeleteRowIndexes: selected,
+            set(patch) { Object.assign(this, patch); } };
+        vm.runInNewContext(applySource + '\napplySearchQuery("查询");', {
+            container: {}, searchInput: {}, document: { activeElement: null },
+            getGenericListControllerContext: () => ({ state }),
+            normalizeRowIndexes: values => [...new Set(values)].sort((a, b) => a - b),
+            getVisibleDeleteRowIndexesFromContext: () => { calls += 1; return [2]; },
+        });
+        assert.equal(calls, expectedCalls, '仅删除模式有选中项时计算候选');
+        assert.deepEqual(Array.from(state.selectedDeleteRowIndexes), expectedSelection);
+        assert.equal(state.listSearchQuery, '查询');
+    }
+
+    const results = [];
+
+    check(results, 'controller', '继续暴露 bindGenericListPageController()', has(contents.controller, 'export function bindGenericListPageController('));
+    check(results, 'controller', '搜索输入更新前记录 active 状态', has(contents.controller, 'const searchWasActive = document.activeElement === searchInput;'));
+    check(results, 'controller', '搜索输入在未激活时不再强制恢复选区', has(contents.controller, 'if (!searchWasActive) return;'));
+    check(results, 'controller', '搜索输入在选区已同步时不再重复恢复', has(contents.controller, 'const selectionAlreadySynced = document.activeElement === nextInput'));
+    check(results, 'controller', '搜索输入仅在不同步时调用 restoreSearchSelection()', has(contents.controller, 'if (!selectionAlreadySynced) {'));
+    check(results, 'controller', '已移除状态更新后无条件 restoreSearchSelection() 的旧写法', !/state\.set\('listSearchQuery', nextValue\);\s*restoreSearchSelection\(container, selectionStart, selectionEnd\);/m.test(contents.controller));
+    check(results, 'controller', 'clear-search 继续显式恢复到输入起点', has(contents.controller, "restoreSearchSelection(container, 0, 0);"));
+    check(results, 'controller', '删除链路已移除 updateDeleteManageRowUi() 旁路函数', !has(contents.controller, 'function updateDeleteManageRowUi(container) {'));
+    check(results, 'controller', '删除链路不再直接调用 updateDeleteManageRowUi()', !has(contents.controller, 'updateDeleteManageRowUi(container);'));
+    check(results, 'controller', '删除成功与否通过结构化 deleteOutcome.deleted 区分后续刷新', has(contents.controller, 'let deleteOutcome = normalizeDeleteOutcome(false);'));
+    check(results, 'controller', '删除失败时不再无条件 refreshListAfterDataMutation()', /if \(deleteOutcome\.deleted\) \{\s*refreshListAfterDataMutation\(container\);\s*\}/m.test(contents.controller));
+
+    check(results, 'renderer', 'renderer 继续支持 preserveToolbarSearch 路径', has(contents.renderer, 'if (preserveToolbarSearch) {'));
+    check(results, 'renderer', 'renderer 对搜索框 value 改为差异写入', has(contents.renderer, 'if (existingSearchInput.value !== nextSearchValue) {'));
+    check(results, 'renderer', 'renderer 对搜索框 disabled 改为差异写入', has(contents.renderer, 'if (existingSearchInput.disabled !== nextSearchDisabled) {'));
+    check(results, 'renderer', 'renderer 继续保留 toolbarSearchState 作为搜索节点 patch 数据源', has(contents.renderer, 'toolbarSearchState: {'));
+    check(results, 'renderer', 'renderer 将 deletingRowIndex 纳入 content patch 条件', has(contents.renderer, "|| changedKeySet.has('deletingRowIndex')"));
+    check(results, 'renderer', 'renderer 行级 patch 不再使用易失效 cursor insertBefore', !has(contents.renderer, 'insertBefore(rowNode, cursor)'));
+    check(results, 'renderer', 'renderer 行级 patch 使用实时 children 锚点重排', has(contents.renderer, 'const referenceNode = list.children[targetIndex] || null;'));
+    check(results, 'renderer', 'renderer 行级 patch 使用实时锚点 insertBefore', has(contents.renderer, 'list.insertBefore(node, referenceNode);'));
+    check(results, 'renderer', 'renderer 行级 patch 失败时回退到全量内容刷新', has(contents.renderer, 'contentRegion.innerHTML = regionHtml.getContentHtml();'));
+    check(results, 'renderer', 'renderer 行级 patch 失败日志接入 Logger', has(contents.renderer, "Logger.withScope({ scope: 'table-viewer/list-page-renderer'"));
+    check(results, 'renderer', 'renderer 复用行投影缓存', has(contents.renderer, 'function buildRowProjection(')
+        && has(contents.renderer, 'rowProjectionCache.get(row)')
+        && has(contents.renderer, 'rowProjectionCache.set(row, cacheEntry)'));
+    check(results, 'renderer', 'renderer 仅在 fallback 时生成整页 HTML', has(contents.renderer, 'getFullPageHtml()')
+        && has(contents.renderer, 'container.innerHTML = nextRegionHtml.getFullPageHtml();')
+        && !has(contents.renderer, 'rawData: getTableData()'));
+    check(results, 'renderer', 'renderer 使用审核 store 单次读取当前表更新集合', has(contents.renderer, 'getUpdatedRowsForSheet(sheetKey)') && !has(contents.renderer, 'hasReviewUpdatesForRow(sheetKey'));
+    check(results, 'renderer', 'renderer 在搜索前应用只看本楼更新过滤', has(contents.renderer, 'const reviewFilteredRows = onlyShowReviewUpdates') && contents.renderer.indexOf('const reviewFilteredRows = onlyShowReviewUpdates') < contents.renderer.indexOf('const filteredRows = searchQueryLower'));
+    check(results, 'renderer', 'renderer 审核过滤优先 rowId 并仅在无 rowId 时回退 rowIndex', has(contents.renderer, 'const normalizedReviewRowId = String(reviewRowId || \'\').trim();') && has(contents.renderer, 'const reviewUpdated = normalizedReviewRowId') && has(contents.renderer, '? reviewRowIds.has(normalizedReviewRowId)') && has(contents.renderer, ': reviewRowIndexes.has(Number(rowIndex));'));
+    check(results, 'renderer', 'renderer 审核过滤不允许 rowId 与 rowIndex 并列 OR 判定', !has(contents.renderer, 'reviewRowIds.has(String(reviewRowId)))\n            || reviewRowIndexes.has(Number(rowIndex))'));
+    check(results, 'renderer', 'renderer 将只看本楼更新纳入 toolbar actions/info/content/nav patch', has(contents.renderer, "changedKeySet.has('onlyShowReviewUpdates')") && has(contents.renderer, 'updateToolbarActions') && has(contents.renderer, 'updateToolbarInfo') && has(contents.renderer, 'updateContent'));
+
+    check(results, 'template', '模板继续提供搜索 region', has(contents.template, 'data-generic-toolbar-region="search"'));
+    check(results, 'template', '模板继续提供稳定搜索输入 id', has(contents.template, 'id="phone-generic-list-search"'));
+    check(results, 'template', '模板继续暴露 toolbar region 容器', has(contents.template, 'data-generic-list-region="toolbar"'));
+    check(results, 'template', '模板行节点继续暴露 data-row-key', has(contents.template, 'data-row-key='));
+    check(results, 'template', '模板行节点继续暴露 data-row-version', has(contents.template, 'data-row-version='));
+    check(results, 'template', '模板提供只看本楼更新按钮与 aria-pressed', has(contents.template, 'data-action="toggle-review-updates-only"') && has(contents.template, 'aria-pressed="${onlyShowReviewUpdates ? \'true\' : \'false\'}"'));
+    check(results, 'template', '模板允许已开启的本楼更新过滤被关闭', has(contents.template, "${!onlyShowReviewUpdates && reviewCount <= 0 ? 'disabled' : ''}"));
+    check(results, 'template', '模板 review-only 空态提供显示全部动作', has(contents.template, "emptyAction = 'toggle-review-updates-only';") && has(contents.template, "emptyActionType = 'show-all';"));
+    check(results, 'template', '模板把 review 过滤状态传入 toolbar 和 content', has(contents.template, 'onlyShowReviewUpdates,') && has(contents.template, 'reviewUpdatedRowCount,'));
+
+    check(results, 'runtime', 'runtime 继续维护 LIST_STATE_REFRESH_KEYS', has(contents.runtime, 'const LIST_STATE_REFRESH_KEYS = new Set(['));
+    check(results, 'runtime', 'runtime 继续对 listSearchQuery 触发局部刷新', has(contents.runtime, "'listSearchQuery'"));
+    check(results, 'runtime', 'runtime 继续对 listSortDescending 触发局部刷新', has(contents.runtime, "'listSortDescending'"));
+    check(results, 'runtime', 'runtime 已将 deletingRowIndex 纳入局部刷新键', has(contents.runtime, "'deletingRowIndex'"));
+    check(results, 'runtime', 'runtime 已将 onlyShowReviewUpdates 纳入局部刷新键', has(contents.runtime, "'onlyShowReviewUpdates'"));
+    check(results, 'runtime', 'runtime 继续在 list 模式下派发订阅刷新', has(contents.runtime, "if (state.mode !== 'list') return;"));
+    check(results, 'runtime', 'runtime 继续通过 activeListRefreshHandler 驱动局部刷新', has(contents.runtime, 'activeListRefreshHandler(Array.isArray(changedKeys) ? changedKeys : []);'));
+    check(results, 'runtime', 'runtime 使用单个 WeakMap 缓存行投影', has(contents.runtime, 'const listRowProjectionCache = new WeakMap();')
+        && has(contents.runtime, 'rowProjectionCache: listRowProjectionCache,'));
+    check(results, 'runtime', 'runtime 将连续搜索输入合并到下一帧', has(contents.runtime, "safeChangedKeys.includes('listSearchQuery')")
+        && has(contents.runtime, 'viewerRuntime.requestAnimationFrame(() => {'));
+
+    const failed = results.filter((item) => !item.ok);
+    if (failed.length > 0) {
+        console.error('[table-viewer-list-search-contract-check] 检查失败：');
+        for (const item of failed) {
+            console.error(`- ${item.file}: ${item.description}`);
+        }
+        process.exitCode = 1;
+        return;
+    }
+
+    console.log('[table-viewer-list-search-contract-check] 检查通过');
+    for (const item of results) {
+        console.log(`- OK | ${item.file} | ${item.description}`);
+    }
+}
+
+main();

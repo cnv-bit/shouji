@@ -1,0 +1,259 @@
+{
+  "format": "yuzi-beautify-workflow",
+  "version": 1,
+  "projectId": "zi-yong-biao-ge",
+  "phase": "confirmed",
+  "tables": {
+    "originalFile": "tables/original/imported.json",
+    "sourceDir": "tables/source",
+    "generatedFile": "tables/generated/tables.json",
+    "originalSha256": "542efafc95cc522e919f77c5f7c967dc104a6eb8e27c73abb52a287e4195b025",
+    "generatedSha256": "e31b851aee0b9090fcbdee2e11ae478ed67a271fd77fd20d2c6aa839487c0aca"
+  },
+  "queue": [
+    {
+      "sheetKey": "sheet_summary",
+      "tableName": "纪要表",
+      "headers": [
+        "row_id",
+        "编码索引",
+        "时间跨度",
+        "与今天的关系",
+        "概览",
+        "纪要",
+        "重要对话"
+      ],
+      "schemaHash": "ef5b2c3ad6c7a1466497359cff67a27ec73470a2e8be5c7e8de14eb3c379bdd1",
+      "status": "completed",
+      "itemId": "chronicle",
+      "fields": [
+        "编码索引",
+        "时间跨度",
+        "与今天的关系",
+        "概览",
+        "纪要",
+        "重要对话"
+      ],
+      "skipReason": null,
+      "completedAt": "2026-09-11T09:21:30.566Z",
+      "preview": {
+        "status": "skipped",
+        "recordedAt": "2026-09-11T09:21:30.567Z",
+        "notes": "用户明确要求：跳过全部制作期模拟、直接打包交付。未运行本轮视觉模拟；真实宿主未验证。 本次统一读取主设置字体变量 --yuzi-phone-font-family；覆盖标题、正文、按钮及图表文字。字体修改后的制作期模拟及真实宿主尚未验证；原有模拟结果不作为本次通过证据。"
+      },
+      "displays": [
+        {
+          "id": "story-inline",
+          "fields": [
+            "编码索引",
+            "时间跨度",
+            "概览",
+            "纪要",
+            "重要对话"
+          ],
+          "completedAt": "2026-09-11T11:59:13.041Z",
+          "preview": {
+            "status": "skipped",
+            "recordedAt": "2026-09-11T11:59:13.041Z",
+            "notes": "用户同意正文分页滚动传递最小修复并全部交付；继续跳过制作期模拟，最终滚动体验由用户验收。仅 overscroll-behavior 从 contain 改为 auto；布局、字段、生图和头像标识不变。"
+          }
+        }
+      ]
+    },
+    {
+      "sheetKey": "sheet_global_data",
+      "tableName": "全局数据表",
+      "headers": [
+        "row_id",
+        "当前时间",
+        "上轮场景时间",
+        "经过的时间",
+        "当前位置"
+      ],
+      "schemaHash": "925bc1b5799a25ce974177da94f9c0812c37dff59b113ac373fa5e29340e1f3e",
+      "status": "completed",
+      "itemId": "global-state",
+      "fields": [
+        "当前时间",
+        "上轮场景时间",
+        "经过的时间",
+        "当前位置"
+      ],
+      "skipReason": null,
+      "completedAt": "2026-09-11T09:21:30.577Z",
+      "preview": {
+        "status": "skipped",
+        "recordedAt": "2026-09-11T09:21:30.577Z",
+        "notes": "用户明确要求：跳过全部制作期模拟、直接打包交付。未运行本轮视觉模拟；真实宿主未验证。 本次统一读取主设置字体变量 --yuzi-phone-font-family；覆盖标题、正文、按钮及图表文字。字体修改后的制作期模拟及真实宿主尚未验证；原有模拟结果不作为本次通过证据。"
+      },
+      "displays": [
+        {
+          "id": "story-inline",
+          "fields": [
+            "当前时间",
+            "当前位置",
+            "经过的时间"
+          ],
+          "completedAt": "2026-09-11T11:59:13.041Z",
+          "preview": {
+            "status": "skipped",
+            "recordedAt": "2026-09-11T11:59:13.041Z",
+            "notes": "用户同意正文分页滚动传递最小修复并全部交付；继续跳过制作期模拟，最终滚动体验由用户验收。仅 overscroll-behavior 从 contain 改为 auto；布局、字段、生图和头像标识不变。"
+          }
+        }
+      ]
+    },
+    {
+      "sheetKey": "sheet_protagonist",
+      "tableName": "主角信息",
+      "headers": [
+        "row_id",
+        "姓名",
+        "性别",
+        "年龄",
+        "外貌特征",
+        "身份",
+        "近况",
+        "基础属性",
+        "特有属性"
+      ],
+      "schemaHash": "8ad94569f20e0416377763dd5dc8b3098fd8182e2279eb356b93a0c34727954d",
+      "status": "completed",
+      "itemId": "protagonist-dossier",
+      "fields": [
+        "row_id",
+        "姓名",
+        "性别",
+        "年龄",
+        "外貌特征",
+        "身份",
+        "近况",
+        "基础属性",
+        "特有属性"
+      ],
+      "skipReason": null,
+      "completedAt": "2026-09-11T09:21:30.597Z",
+      "preview": {
+        "status": "skipped",
+        "recordedAt": "2026-09-11T09:21:30.597Z",
+        "notes": "用户明确要求：跳过全部制作期模拟、直接打包交付。未运行本轮视觉模拟；真实宿主未验证。 用户明确选择姓名为图片稳定标识；正文弹窗共用头像，不增加生图按钮。当前导入表仅有表头，无实际姓名可核验；空姓名/重名停止绑定。标识规则变更，不迁移或删除旧图；非视觉行为测试通过，制作期模拟延后，真实宿主未验证。"
+      },
+      "displays": [
+        {
+          "id": "story-inline",
+          "fields": [
+            "姓名",
+            "性别",
+            "年龄",
+            "外貌特征",
+            "身份",
+            "近况",
+            "特有属性"
+          ],
+          "completedAt": "2026-09-11T11:59:13.041Z",
+          "preview": {
+            "status": "skipped",
+            "recordedAt": "2026-09-11T11:59:13.041Z",
+            "notes": "用户同意正文分页滚动传递最小修复并全部交付；继续跳过制作期模拟，最终滚动体验由用户验收。仅 overscroll-behavior 从 contain 改为 auto；布局、字段、生图和头像标识不变。"
+          }
+        }
+      ]
+    },
+    {
+      "sheetKey": "sheet_important_npc",
+      "tableName": "重要角色表",
+      "headers": [
+        "row_id",
+        "姓名",
+        "角色类型",
+        "性别",
+        "年龄",
+        "一句话介绍",
+        "外貌特征",
+        "穿着打扮",
+        "基础属性",
+        "特有属性",
+        "所在地点",
+        "在场状态",
+        "人际关系"
+      ],
+      "schemaHash": "d00dffddcfa88468ea6ef74c4973f246944259ce4764e995dfbbcb13fc485834",
+      "status": "completed",
+      "itemId": "important-characters",
+      "fields": [
+        "姓名",
+        "角色类型",
+        "性别",
+        "年龄",
+        "一句话介绍",
+        "外貌特征",
+        "穿着打扮",
+        "基础属性",
+        "特有属性",
+        "所在地点",
+        "在场状态",
+        "人际关系"
+      ],
+      "skipReason": null,
+      "completedAt": "2026-09-11T09:21:30.584Z",
+      "preview": {
+        "status": "skipped",
+        "recordedAt": "2026-09-11T09:21:30.584Z",
+        "notes": "用户明确要求：跳过全部制作期模拟、直接打包交付。未运行本轮视觉模拟；真实宿主未验证。 本次统一读取主设置字体变量 --yuzi-phone-font-family；覆盖标题、正文、按钮及图表文字。字体修改后的制作期模拟及真实宿主尚未验证；原有模拟结果不作为本次通过证据。"
+      }
+    },
+    {
+      "sheetKey": "sheet_OptionsNew",
+      "tableName": "选项表",
+      "headers": [
+        "row_id",
+        "选项一",
+        "选项二",
+        "选项三",
+        "选项四",
+        "选项五"
+      ],
+      "schemaHash": "2b38312286ca69c4438d757f0bcd1d6e9fa19bf031bd4748ab3e4acea327f1b2",
+      "status": "completed",
+      "itemId": "options",
+      "fields": [
+        "选项一",
+        "选项二",
+        "选项三",
+        "选项四",
+        "选项五"
+      ],
+      "skipReason": null,
+      "completedAt": "2026-09-11T09:21:30.590Z",
+      "preview": {
+        "status": "skipped",
+        "recordedAt": "2026-09-11T09:21:30.590Z",
+        "notes": "用户明确要求：跳过全部制作期模拟、直接打包交付。未运行本轮视觉模拟；真实宿主未验证。 本次统一读取主设置字体变量 --yuzi-phone-font-family；覆盖标题、正文、按钮及图表文字。字体修改后的制作期模拟及真实宿主尚未验证；原有模拟结果不作为本次通过证据。"
+      },
+      "displays": [
+        {
+          "id": "story-inline",
+          "fields": [
+            "选项一",
+            "选项二",
+            "选项三",
+            "选项四",
+            "选项五"
+          ],
+          "completedAt": "2026-09-11T11:59:13.041Z",
+          "preview": {
+            "status": "skipped",
+            "recordedAt": "2026-09-11T11:59:13.041Z",
+            "notes": "用户同意正文分页滚动传递最小修复并全部交付；继续跳过制作期模拟，最终滚动体验由用户验收。仅 overscroll-behavior 从 contain 改为 auto；布局、字段、生图和头像标识不变。"
+          }
+        }
+      ]
+    }
+  ],
+  "currentTable": null,
+  "confirmation": {
+    "confirmed": true,
+    "confirmedAt": "2026-09-11T12:00:03.898Z",
+    "summaryHash": "bd50117a2c380e07600511a9bdcd623109ec7267efe68e1888e4a6685a2f2569"
+  }
+}

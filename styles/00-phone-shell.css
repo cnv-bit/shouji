@@ -1,0 +1,217 @@
+/* ========================================
+   Yuzi Phone 独立容器层
+   作用域：.yuzi-phone-root
+   ======================================== */
+
+.yuzi-phone-root {
+    position: relative;
+    z-index: 8999;
+}
+
+.yuzi-phone-root .yuzi-phone-standalone {
+    position: fixed;
+    z-index: 8999;
+    width: var(--yuzi-phone-frame-reference-width);
+    height: var(--yuzi-phone-frame-reference-height);
+    display: none;
+    touch-action: auto;
+    user-select: none;
+}
+
+.yuzi-phone-root .yuzi-phone-standalone.visible {
+    display: block;
+}
+
+.yuzi-phone-root .yuzi-phone-standalone.dragging {
+    opacity: 0.9;
+    will-change: transform;
+}
+
+.yuzi-phone-root .yuzi-phone-standalone.resizing {
+    opacity: 0.95;
+}
+
+.yuzi-phone-root .yuzi-phone-standalone .yuzi-phone-shell {
+    width: 100%;
+    height: 100%;
+}
+
+.yuzi-phone-root .yuzi-phone-resize {
+    position: absolute;
+    z-index: 260;
+    touch-action: none;
+}
+
+.yuzi-phone-root .yuzi-phone-resize-e {
+    right: -4px;
+    top: 12%;
+    width: 14px;
+    height: 76%;
+    cursor: ew-resize;
+}
+
+.yuzi-phone-root .yuzi-phone-resize-se {
+    right: -4px;
+    bottom: -4px;
+    width: 26px;
+    height: 26px;
+    cursor: nwse-resize;
+}
+
+.yuzi-phone-root .yuzi-phone-resize-se::after {
+    content: '';
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 10px;
+    height: 10px;
+    border-right: 3px solid rgba(255, 255, 255, 0.7);
+    border-bottom: 3px solid rgba(255, 255, 255, 0.7);
+    opacity: 0.9;
+}
+
+.yuzi-phone-root .yuzi-phone-resize:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.yuzi-phone-root .yuzi-phone-toggle {
+    --yuzi-phone-toggle-size: 40px;
+    --yuzi-phone-toggle-rounded-width: calc(var(--yuzi-phone-toggle-size) * 2.1);
+
+    position: fixed;
+    z-index: 10000;
+    width: var(--yuzi-phone-toggle-rounded-width);
+    min-width: var(--yuzi-phone-toggle-rounded-width);
+    height: var(--yuzi-phone-toggle-size);
+    min-height: var(--yuzi-phone-toggle-size);
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #f8fbfd;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid rgba(255, 255, 255, 0.46);
+    border-radius: 999px;
+    background-color: rgba(226, 236, 244, 0.18);
+    background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(226, 236, 244, 0.18));
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow:
+        0 16px 38px rgba(42, 60, 76, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.62),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(14px) saturate(1.25);
+    -webkit-backdrop-filter: blur(14px) saturate(1.25);
+    overflow: hidden;
+    transition: border-color 0.18s ease, border-radius 0.18s ease, box-shadow 0.18s ease, transform 0.16s ease, background 0.18s ease;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0.16));
+    pointer-events: none;
+    opacity: 0.74;
+    transition: opacity 0.15s ease;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-has-cover::before {
+    opacity: 0;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-shape-rounded {
+    width: var(--yuzi-phone-toggle-rounded-width);
+    min-width: var(--yuzi-phone-toggle-rounded-width);
+    height: var(--yuzi-phone-toggle-size);
+    min-height: var(--yuzi-phone-toggle-size);
+    padding: 0 14px;
+    border-radius: 999px;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-shape-circle {
+    width: var(--yuzi-phone-toggle-size);
+    min-width: var(--yuzi-phone-toggle-size);
+    height: var(--yuzi-phone-toggle-size);
+    min-height: var(--yuzi-phone-toggle-size);
+    padding: 0;
+    border-radius: 999px;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-has-cover {
+    border: 0;
+    background-color: transparent;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle.dragging {
+    opacity: 0.9;
+    transform: none;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle:not(.dragging):hover {
+    border-color: rgba(255, 255, 255, 0.62);
+    transform: translateY(-2px);
+    box-shadow:
+        0 20px 46px rgba(42, 60, 76, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.74),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.yuzi-phone-root .yuzi-phone-toggle:not(.dragging):active,
+.yuzi-phone-root .yuzi-phone-toggle.active:not(.dragging) {
+    transform: translateY(1px) scale(0.97);
+    box-shadow:
+        0 9px 22px rgba(42, 60, 76, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.48);
+}
+
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-has-cover:not(.dragging):hover,
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-has-cover:not(.dragging):active,
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-has-cover.active:not(.dragging) {
+    box-shadow: none;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle-icon {
+    position: relative;
+    z-index: 1;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle-text {
+    position: relative;
+    z-index: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: currentColor;
+    white-space: nowrap;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-shape-circle .yuzi-phone-toggle-text {
+    display: none;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-cover-only .yuzi-phone-toggle-icon,
+.yuzi-phone-root .yuzi-phone-toggle.yuzi-phone-toggle-cover-only .yuzi-phone-toggle-text {
+    display: none;
+}
+
+.yuzi-phone-root .yuzi-phone-toggle-mobile {
+    transform-origin: top left;
+}

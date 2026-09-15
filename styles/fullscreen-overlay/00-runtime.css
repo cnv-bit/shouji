@@ -1,0 +1,200 @@
+.yuzi-phone-fullscreen-overlay-layer {
+    --yuzi-phone-fullscreen-overlay-safe-top: 8%;
+    --yuzi-phone-fullscreen-overlay-safe-bottom: 78%;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
+    z-index: 8998;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+    contain: layout style paint;
+    isolation: isolate;
+}
+
+.yuzi-phone-fullscreen-overlay-barrage {
+    position: absolute;
+    top: var(
+        --yuzi-phone-fullscreen-overlay-track-top,
+        var(--yuzi-phone-fullscreen-overlay-safe-top)
+    );
+    left: 0;
+    max-width: max-content;
+    color: var(--yuzi-phone-fullscreen-overlay-color, #fff);
+    font-size: var(--yuzi-phone-fullscreen-overlay-font-size, 14px);
+    font-weight: 600;
+    line-height: 1.35;
+    white-space: nowrap;
+    text-shadow:
+        -1px -1px 0 rgba(0, 0, 0, 0.72),
+        1px -1px 0 rgba(0, 0, 0, 0.72),
+        -1px 1px 0 rgba(0, 0, 0, 0.72),
+        1px 1px 0 rgba(0, 0, 0, 0.72);
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation-name: yuzi-phone-fullscreen-overlay-scroll;
+    animation-duration: var(--yuzi-phone-fullscreen-overlay-duration, 8000ms);
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+.yuzi-phone-fullscreen-overlay-layer[data-yuzi-phone-overlay-paused="true"]
+    .yuzi-phone-fullscreen-overlay-barrage {
+    animation-play-state: paused;
+}
+
+.yuzi-phone-fullscreen-overlay-table-popup {
+    position: absolute;
+    top: var(--yuzi-phone-fullscreen-overlay-popup-top, 12px);
+    left: var(--yuzi-phone-fullscreen-overlay-popup-left, 12px);
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns:
+        repeat(
+            var(--yuzi-phone-fullscreen-overlay-popup-columns, 2),
+            minmax(0, 1fr)
+        );
+    gap: var(--yuzi-phone-fullscreen-overlay-popup-gap, 8px);
+    width: var(--yuzi-phone-fullscreen-overlay-popup-width, min(88vw, 560px));
+    padding: var(--yuzi-phone-fullscreen-overlay-popup-padding, 14px);
+    border-radius: var(--yuzi-phone-fullscreen-overlay-popup-radius, 20px);
+    background: var(--yuzi-phone-fullscreen-overlay-popup-background, rgba(255, 255, 255, 0.94));
+    color: var(--yuzi-phone-fullscreen-overlay-popup-color, #1f1f1f);
+    pointer-events: none;
+    transform-origin: var(--yuzi-phone-fullscreen-overlay-popup-transform-origin, top left);
+    will-change: transform, opacity;
+    animation-name: yuzi-phone-fullscreen-overlay-popup;
+    animation-duration: var(--yuzi-phone-fullscreen-overlay-popup-duration, 4000ms);
+    animation-timing-function: ease;
+    animation-fill-mode: forwards;
+}
+
+.yuzi-phone-fullscreen-overlay-table-popup-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px;
+    border-radius: calc(var(--yuzi-phone-fullscreen-overlay-popup-radius, 20px) * 0.5);
+    background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.yuzi-phone-fullscreen-overlay-table-popup-label {
+    font-size: var(--yuzi-phone-fullscreen-overlay-popup-label-size, 11px);
+    font-weight: 600;
+    line-height: 1.35;
+    opacity: 0.62;
+}
+
+.yuzi-phone-fullscreen-overlay-table-popup-value {
+    min-width: 0;
+    font-size: var(--yuzi-phone-fullscreen-overlay-popup-value-size, 14px);
+    font-weight: 500;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.yuzi-phone-fullscreen-overlay-message-notification {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--yuzi-phone-fullscreen-overlay-popup-gap, 8px) * 1.5);
+    min-height: calc(var(--yuzi-phone-fullscreen-overlay-notification-avatar-size, 48px) + 24px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.yuzi-phone-fullscreen-overlay-message-notification-avatar {
+    display: grid;
+    flex: 0 0 var(--yuzi-phone-fullscreen-overlay-notification-avatar-size, 48px);
+    width: var(--yuzi-phone-fullscreen-overlay-notification-avatar-size, 48px);
+    height: var(--yuzi-phone-fullscreen-overlay-notification-avatar-size, 48px);
+    place-items: center;
+    overflow: hidden;
+    border-radius: 30%;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    font-size: calc(var(--yuzi-phone-fullscreen-overlay-notification-font-size, 15px) * 1.15);
+    font-weight: 700;
+}
+
+.yuzi-phone-fullscreen-overlay-message-notification-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.yuzi-phone-fullscreen-overlay-message-notification-text {
+    min-width: 0;
+    font-size: var(--yuzi-phone-fullscreen-overlay-notification-font-size, 15px);
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.yuzi-phone-fullscreen-overlay-layer[data-yuzi-phone-overlay-paused="true"]
+    .yuzi-phone-fullscreen-overlay-table-popup {
+    animation-play-state: paused;
+}
+
+@keyframes yuzi-phone-fullscreen-overlay-scroll {
+    0% {
+        transform: translate3d(100vw, 0, 0);
+        opacity: 0;
+    }
+
+    4% {
+        opacity: var(--yuzi-phone-fullscreen-overlay-opacity, 0.86);
+    }
+
+    94% {
+        opacity: var(--yuzi-phone-fullscreen-overlay-opacity, 0.86);
+    }
+
+    100% {
+        transform: translate3d(-110%, 0, 0);
+        opacity: 0;
+    }
+}
+
+@keyframes yuzi-phone-fullscreen-overlay-popup {
+    0% {
+        transform: scale(var(--yuzi-phone-fullscreen-overlay-popup-enter-scale, 0.96));
+        opacity: 0;
+    }
+
+    7%,
+    90% {
+        transform: scale(var(--yuzi-phone-fullscreen-overlay-popup-fit-scale, 1));
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(var(--yuzi-phone-fullscreen-overlay-popup-exit-scale, 0.98));
+        opacity: 0;
+    }
+}
+
+/* 正文出口只限定玉子自有节点，不覆盖宿主与其他扩展。 */
+.yuzi-phone-inline-table-popup-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.yuzi-phone-inline-table-popup-container > .yuzi-phone-fullscreen-overlay-table-popup {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    animation: none;
+    transform: none;
+    will-change: auto;
+    pointer-events: auto;
+}

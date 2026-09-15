@@ -1,0 +1,970 @@
+/* ========================================
+   Variable Manager - Light UI
+   参考设置页 / 通用表格页的浅色卡片风格
+   ======================================== */
+
+.vm-page {
+    --yuzi-variable-manager-page-bg: var(--yuzi-theme-page-bg);
+    --yuzi-variable-manager-surface: var(--yuzi-theme-surface);
+    --yuzi-variable-manager-surface-soft: var(--yuzi-theme-surface-soft);
+    --yuzi-variable-manager-surface-strong: var(--yuzi-theme-surface-strong);
+    --yuzi-variable-manager-text-primary: var(--yuzi-theme-text-primary);
+    --yuzi-variable-manager-text-secondary: var(--yuzi-theme-text-secondary);
+    --yuzi-variable-manager-text-faint: var(--yuzi-theme-text-faint);
+    --yuzi-variable-manager-border: var(--yuzi-theme-border);
+    --yuzi-variable-manager-border-strong: var(--yuzi-theme-border-strong);
+    --yuzi-variable-manager-shadow-soft: var(--yuzi-theme-shadow-soft);
+    --yuzi-variable-manager-shadow-medium: var(--yuzi-theme-shadow-medium);
+    --yuzi-variable-manager-accent: var(--yuzi-theme-accent);
+    --yuzi-variable-manager-accent-strong: var(--yuzi-theme-accent-strong);
+    --yuzi-variable-manager-accent-soft: var(--yuzi-theme-accent-soft);
+    --yuzi-variable-manager-accent-ring: var(--yuzi-theme-accent-ring);
+    --yuzi-variable-manager-danger: var(--yuzi-theme-danger);
+    --yuzi-variable-manager-danger-soft: var(--yuzi-theme-danger-soft);
+    --yuzi-variable-manager-warning: var(--yuzi-theme-warning);
+    --yuzi-variable-manager-warning-soft: var(--yuzi-theme-warning-soft);
+    --yuzi-variable-manager-bottom-bar-height: calc(72px + env(safe-area-inset-bottom, 0px));
+    --yuzi-variable-manager-bottom-gap: 40px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    color: var(--yuzi-variable-manager-text-primary);
+    background: var(--yuzi-variable-manager-page-bg);
+    overflow: hidden;
+}
+
+.vm-navbar.phone-nav-bar {
+    background: var(--yuzi-variable-manager-surface-soft);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--yuzi-variable-manager-border);
+    box-shadow: var(--yuzi-variable-manager-shadow-soft);
+}
+
+.vm-navbar .phone-nav-back {
+    color: var(--yuzi-variable-manager-accent);
+    background: transparent;
+}
+
+.vm-navbar .phone-nav-back:hover,
+.vm-navbar .phone-nav-back:active {
+    background: var(--yuzi-variable-manager-accent-soft);
+}
+
+.vm-nav-title.phone-nav-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    max-width: 100%;
+    gap: 6px;
+    color: var(--yuzi-variable-manager-text-primary);
+    pointer-events: none;
+}
+
+.vm-nav-title-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vm-mvu-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--yuzi-variable-manager-accent), var(--yuzi-variable-manager-accent-strong));
+    color: var(--yuzi-variable-manager-surface-strong);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.4px;
+    box-shadow: var(--yuzi-variable-manager-shadow-soft);
+}
+
+.vm-nav-right-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.vm-floor-label {
+    display: inline-flex;
+    align-items: center;
+    max-width: 72px;
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: right;
+}
+
+.vm-nav-refresh {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: var(--yuzi-variable-manager-accent-soft);
+    color: var(--yuzi-variable-manager-accent);
+    cursor: pointer;
+    transition: background 0.16s ease, transform 0.16s ease;
+}
+
+.vm-nav-refresh:hover,
+.vm-nav-refresh:active {
+    background: var(--yuzi-variable-manager-accent-ring);
+}
+
+.vm-nav-refresh:active {
+    transform: scale(0.96);
+}
+
+@container yuzi-phone-screen (max-width: 300px) {
+    .vm-floor-label {
+        display: none;
+    }
+}
+
+.vm-body.phone-app-body {
+    background: transparent;
+    color: var(--yuzi-variable-manager-text-primary);
+    padding: 12px 12px calc(var(--yuzi-variable-manager-bottom-bar-height) + var(--yuzi-variable-manager-bottom-gap) + 72px);
+    scroll-padding-bottom: calc(var(--yuzi-variable-manager-bottom-bar-height) + var(--yuzi-variable-manager-bottom-gap) + 72px);
+    box-sizing: border-box;
+}
+
+.vm-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.vm-content::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: calc(var(--yuzi-variable-manager-bottom-bar-height) + 120px);
+    flex: 0 0 auto;
+    pointer-events: none;
+}
+
+.vm-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    padding: 24px;
+    border-radius: 18px;
+    border: 1px dashed var(--yuzi-variable-manager-border-strong);
+    background: var(--yuzi-variable-manager-surface-soft);
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+    text-align: center;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.vm-state {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vm-state-loading {
+    border-color: color-mix(in srgb, var(--yuzi-variable-manager-accent) 24%, transparent);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--yuzi-variable-manager-accent-soft) 64%, transparent), color-mix(in srgb, var(--yuzi-variable-manager-surface-strong) 74%, transparent));
+    color: var(--yuzi-variable-manager-accent-strong);
+}
+
+.vm-state-loading::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 3px solid color-mix(in srgb, var(--yuzi-variable-manager-accent) 28%, transparent);
+    border-top-color: color-mix(in srgb, var(--yuzi-variable-manager-accent-strong) 82%, transparent);
+    animation: vm-state-spin 0.8s linear infinite;
+}
+
+.vm-state-error {
+    border-color: color-mix(in srgb, var(--yuzi-variable-manager-danger) 32%, transparent);
+    background: color-mix(in srgb, var(--yuzi-variable-manager-danger-soft) 66%, transparent);
+    color: var(--yuzi-variable-manager-danger);
+}
+
+.vm-state-unavailable {
+    border-color: color-mix(in srgb, var(--yuzi-variable-manager-warning) 30%, transparent);
+    background: color-mix(in srgb, var(--yuzi-variable-manager-warning-soft) 68%, transparent);
+    color: var(--yuzi-variable-manager-warning);
+}
+
+.vm-state-empty {
+    color: var(--yuzi-variable-manager-text-faint);
+}
+
+@keyframes vm-state-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.vm-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vm-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 4px 0;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.vm-group-chevron,
+.vm-object-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    color: var(--yuzi-variable-manager-text-faint);
+    font-size: 11px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.vm-group-name {
+    flex: 1;
+    min-width: 0;
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.35;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.vm-group-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--yuzi-variable-manager-text-faint) 16%, transparent);
+    color: var(--yuzi-variable-manager-text-faint);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.vm-group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+    transition: max-height 0.24s ease, opacity 0.18s ease, padding 0.18s ease;
+}
+
+.vm-group-collapsed .vm-group-body {
+    max-height: 0 !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.vm-group-collapsed .vm-group-chevron {
+    transform: rotate(-90deg);
+}
+
+.vm-tree-node {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: var(--yuzi-variable-manager-node-indent, 0px);
+}
+
+.vm-tree-leaf {
+    gap: 0;
+}
+
+.vm-object-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 24px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--yuzi-variable-manager-surface-strong) 74%, transparent);
+    border: 1px solid color-mix(in srgb, var(--yuzi-variable-manager-border-strong) 55%, transparent);
+    box-shadow: var(--yuzi-variable-manager-shadow-soft);
+    color: var(--yuzi-variable-manager-text-secondary);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.vm-object-name {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.35;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.vm-object-meta {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--yuzi-variable-manager-text-faint) 14%, transparent);
+    color: var(--yuzi-variable-manager-text-faint);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.vm-object-children {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: max-height 0.24s ease, opacity 0.18s ease;
+}
+
+.vm-object-collapsed {
+    gap: 0;
+}
+
+.vm-object-collapsed > .vm-object-children {
+    max-height: 0 !important;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.vm-object-collapsed > .vm-object-title .vm-object-chevron {
+    transform: rotate(-90deg);
+}
+
+.vm-object-empty {
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px dashed color-mix(in srgb, var(--yuzi-variable-manager-text-faint) 26%, transparent);
+    background: color-mix(in srgb, var(--yuzi-variable-manager-surface-strong) 56%, transparent);
+    color: var(--yuzi-variable-manager-text-faint);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.vm-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: var(--yuzi-variable-manager-surface-strong);
+    border: 1px solid color-mix(in srgb, var(--yuzi-variable-manager-border-strong) 72%, transparent);
+    box-shadow: var(--yuzi-variable-manager-shadow-soft);
+    cursor: pointer;
+    transition: transform 0.14s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.vm-card:hover,
+.vm-card:active,
+.vm-object-title:hover,
+.vm-object-title:active {
+    border-color: color-mix(in srgb, var(--yuzi-variable-manager-accent) 60%, transparent);
+    box-shadow: var(--yuzi-variable-manager-shadow-medium);
+}
+
+.vm-card:active,
+.vm-object-title:active {
+    transform: scale(0.992);
+}
+
+.vm-card-content {
+    display: grid;
+    grid-template-columns: minmax(72px, 96px) minmax(0, 1fr);
+    gap: 10px 12px;
+    align-items: start;
+    width: 100%;
+    min-width: 0;
+}
+
+.vm-card-key {
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.vm-card-value {
+    color: var(--yuzi-variable-manager-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.55;
+    text-align: left;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: visible;
+}
+
+.vm-card-description-label {
+    color: var(--yuzi-variable-manager-text-faint);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.45;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.vm-card-description {
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: visible;
+}
+
+.vm-value-number {
+    color: var(--yuzi-variable-manager-accent);
+}
+
+.vm-value-string {
+    color: var(--yuzi-variable-manager-success, var(--yuzi-variable-manager-accent));
+}
+
+.vm-value-boolean {
+    color: var(--yuzi-variable-manager-warning);
+}
+
+.vm-value-null {
+    color: var(--yuzi-variable-manager-text-faint);
+    font-style: italic;
+}
+
+.vm-value-array,
+.vm-value-object {
+    color: var(--yuzi-variable-manager-accent-strong);
+}
+
+.vm-card-editing {
+    cursor: default;
+    border-color: color-mix(in srgb, var(--yuzi-variable-manager-accent) 36%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--yuzi-variable-manager-surface-strong) 98%, transparent), color-mix(in srgb, var(--yuzi-variable-manager-accent-soft) 28%, transparent));
+    box-shadow: var(--yuzi-variable-manager-shadow-medium);
+}
+
+.vm-card-editing:active {
+    transform: none;
+}
+
+.vm-card-edit-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.vm-card-edit-label {
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.vm-edit-input {
+    width: 100%;
+    min-height: 72px;
+    padding: 10px 12px;
+    resize: none;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--yuzi-variable-manager-border-strong);
+    background: var(--yuzi-variable-manager-surface-strong) !important;
+    color: var(--yuzi-variable-manager-text-primary) !important;
+    caret-color: var(--yuzi-variable-manager-text-primary) !important;
+    -webkit-text-fill-color: var(--yuzi-variable-manager-text-primary) !important;
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+    box-sizing: border-box;
+    outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--yuzi-variable-manager-text-primary) 10%, transparent);
+}
+
+.vm-edit-input:focus {
+    border-color: var(--yuzi-variable-manager-accent);
+    background: var(--yuzi-variable-manager-surface-strong) !important;
+    color: var(--yuzi-variable-manager-text-primary) !important;
+    -webkit-text-fill-color: var(--yuzi-variable-manager-text-primary) !important;
+    box-shadow: 0 0 0 3px var(--yuzi-variable-manager-accent-soft);
+}
+
+.vm-edit-input::placeholder {
+    color: var(--yuzi-variable-manager-text-faint) !important;
+    -webkit-text-fill-color: var(--yuzi-variable-manager-text-faint) !important;
+}
+
+.vm-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.vm-edit-cancel,
+.vm-edit-save,
+.vm-delete-cancel-btn,
+.vm-delete-confirm-btn,
+.vm-add-btn,
+.vm-dialog-btn {
+    border: none;
+    cursor: pointer;
+    transition: transform 0.14s ease, opacity 0.14s ease, background 0.14s ease;
+}
+
+.vm-edit-cancel,
+.vm-edit-save {
+    min-width: 76px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.vm-edit-cancel {
+    background: var(--yuzi-variable-manager-surface-soft);
+    color: var(--yuzi-variable-manager-text-secondary);
+}
+
+.vm-edit-save {
+    background: var(--yuzi-variable-manager-accent);
+    color: var(--yuzi-variable-manager-surface-strong);
+    box-shadow: var(--yuzi-variable-manager-shadow-medium);
+}
+
+.vm-edit-cancel:active,
+.vm-edit-save:active,
+.vm-add-btn:active,
+.vm-delete-cancel-btn:active,
+.vm-delete-confirm-btn:active {
+    transform: scale(0.97);
+}
+
+.vm-delete-selectable {
+    position: relative;
+}
+
+.vm-card-delete-mode {
+    padding-left: 10px;
+}
+
+.vm-card-checkbox {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.vm-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1.8px solid color-mix(in srgb, var(--yuzi-variable-manager-border-strong) 72%, transparent);
+    background: var(--yuzi-variable-manager-surface-strong);
+    box-sizing: border-box;
+    transition: all 0.16s ease;
+    box-shadow: inset 0 1px 1px color-mix(in srgb, var(--yuzi-variable-manager-text-primary) 4%, transparent);
+}
+
+.vm-checkbox-checked {
+    position: relative;
+    background: var(--yuzi-variable-manager-danger);
+    border-color: var(--yuzi-variable-manager-danger);
+}
+
+.vm-checkbox-checked::after {
+    content: '';
+    position: absolute;
+    top: 47%;
+    left: 50%;
+    width: 7px;
+    height: 4px;
+    border-left: 2px solid var(--yuzi-variable-manager-surface-strong);
+    border-bottom: 2px solid var(--yuzi-variable-manager-surface-strong);
+    transform: translate(-50%, -60%) rotate(-45deg);
+}
+
+.vm-card-selected,
+.vm-delete-selected.vm-card,
+.vm-delete-selected.vm-group-header,
+.vm-delete-selected.vm-object-title {
+    background: color-mix(in srgb, var(--yuzi-variable-manager-danger-soft) 95%, transparent) !important;
+    border-color: color-mix(in srgb, var(--yuzi-variable-manager-danger) 42%, transparent) !important;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--yuzi-variable-manager-danger) 8%, transparent) !important;
+}
+
+.vm-group-header-delete-mode,
+.vm-object-title-delete-mode {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--yuzi-variable-manager-surface-strong) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--yuzi-variable-manager-border-strong) 54%, transparent);
+    box-shadow: var(--yuzi-variable-manager-shadow-soft);
+}
+
+.vm-footer,
+.vm-delete-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px max(12px, env(safe-area-inset-bottom));
+    background: var(--yuzi-variable-manager-surface-strong);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--yuzi-variable-manager-border);
+    box-shadow: var(--yuzi-variable-manager-shadow-soft);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 20;
+}
+
+.vm-footer {
+    justify-content: center;
+}
+
+.vm-footer-hidden,
+.vm-delete-bar-hidden {
+    opacity: 0;
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+.vm-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: var(--yuzi-variable-manager-accent-soft);
+    color: var(--yuzi-variable-manager-accent);
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1px var(--yuzi-variable-manager-accent-ring);
+}
+
+.vm-delete-cancel-btn {
+    padding: 10px 6px;
+    background: transparent;
+    color: var(--yuzi-variable-manager-accent);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.vm-delete-confirm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--yuzi-variable-manager-danger), color-mix(in srgb, var(--yuzi-variable-manager-danger) 82%, var(--yuzi-variable-manager-text-primary)));
+    color: var(--yuzi-variable-manager-surface-strong);
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: var(--yuzi-variable-manager-shadow-medium);
+}
+
+.vm-delete-confirm-btn:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.vm-dialog-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--yuzi-variable-manager-text-primary) 30%, transparent);
+    opacity: 0;
+    z-index: 50;
+    transition: opacity 0.18s ease;
+}
+
+.vm-dialog-show {
+    opacity: 1;
+}
+
+.vm-dialog {
+    width: min(100%, 320px);
+    border-radius: 18px;
+    background: var(--yuzi-variable-manager-surface-strong);
+    border: 1px solid var(--yuzi-variable-manager-border-strong);
+    box-shadow: var(--yuzi-variable-manager-shadow-medium);
+    overflow: hidden;
+    transform: translateY(8px) scale(0.98);
+    transition: transform 0.18s ease;
+}
+
+.vm-dialog-show .vm-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.vm-dialog-title {
+    padding: 18px 18px 8px;
+    color: var(--yuzi-variable-manager-text-primary);
+    font-size: 16px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.vm-dialog-body,
+.vm-dialog-body-confirm {
+    padding: 8px 18px 18px;
+}
+
+.vm-dialog-field + .vm-dialog-field {
+    margin-top: 12px;
+}
+
+.vm-dialog-label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.vm-dialog-input {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--yuzi-variable-manager-border-strong);
+    background: var(--yuzi-variable-manager-surface-strong);
+    color: var(--yuzi-variable-manager-text-primary);
+    font-size: 14px;
+    line-height: 1.45;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.vm-dialog-input:focus {
+    border-color: var(--yuzi-variable-manager-accent);
+    box-shadow: 0 0 0 3px var(--yuzi-variable-manager-accent-soft);
+}
+
+.vm-input-error {
+    border-color: color-mix(in srgb, var(--yuzi-variable-manager-danger) 65%, transparent) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--yuzi-variable-manager-danger) 8%, transparent) !important;
+}
+
+.vm-dialog-hint {
+    margin-top: 4px;
+    color: var(--yuzi-variable-manager-text-faint);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.vm-dialog-buttons {
+    display: flex;
+    border-top: 1px solid var(--yuzi-variable-manager-border);
+}
+
+.vm-dialog-btn {
+    flex: 1;
+    padding: 14px 16px;
+    background: transparent;
+    color: var(--yuzi-variable-manager-accent);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.vm-dialog-btn + .vm-dialog-btn {
+    border-left: 1px solid var(--yuzi-variable-manager-border);
+}
+
+.vm-dialog-cancel {
+    color: var(--yuzi-variable-manager-text-secondary);
+}
+
+.vm-dialog-confirm-danger {
+    color: var(--yuzi-variable-manager-danger);
+}
+
+.vm-confirm-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.vm-confirm-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.vm-confirm-row-block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+}
+
+.vm-confirm-label {
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.vm-confirm-value {
+    color: var(--yuzi-variable-manager-text-primary);
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.vm-confirm-delete-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.vm-confirm-delete-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--yuzi-variable-manager-surface-soft);
+    border: 1px solid var(--yuzi-variable-manager-border);
+    color: var(--yuzi-variable-manager-text-secondary);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.vm-confirm-delete-kind {
+    grid-column: 1;
+    align-self: start;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--yuzi-variable-manager-danger-soft);
+    color: var(--yuzi-variable-manager-danger);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.vm-confirm-delete-value {
+    grid-column: 2;
+    color: var(--yuzi-variable-manager-text-primary);
+    font-weight: 700;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.vm-confirm-delete-path,
+.vm-confirm-delete-meta {
+    grid-column: 1 / -1;
+    font-family: 'SF Mono', 'Menlo', monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.vm-confirm-delete-path {
+    color: var(--yuzi-variable-manager-text-secondary);
+}
+
+.vm-confirm-delete-meta {
+    color: var(--yuzi-variable-manager-warning);
+}
+
+.vm-confirm-warning {
+    color: var(--yuzi-variable-manager-warning);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.vm-toast {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--yuzi-variable-manager-bottom-bar-height) + 14px);
+    transform: translateX(-50%) translateY(10px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: calc(100% - 32px);
+    padding: 10px 16px;
+    border-radius: 999px;
+    color: var(--yuzi-variable-manager-surface-strong);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+    white-space: normal;
+    word-break: break-word;
+    opacity: 0;
+    box-shadow: var(--yuzi-variable-manager-shadow-medium);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 60;
+    pointer-events: none;
+}
+
+.vm-toast-show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.vm-toast-success {
+    background: color-mix(in srgb, var(--yuzi-variable-manager-text-primary) 88%, transparent);
+}
+
+.vm-toast-error {
+    background: color-mix(in srgb, var(--yuzi-variable-manager-danger) 92%, transparent);
+}

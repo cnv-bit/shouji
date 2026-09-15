@@ -1,0 +1,284 @@
+.phone-image-crop-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 100%;
+    padding: var(--yuzi-phone-crop-overlay-padding);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: var(--yuzi-qq-overlay);
+    opacity: var(--yuzi-phone-crop-overlay-hidden-opacity);
+    transition: opacity var(--yuzi-qq-transition) var(--yuzi-phone-crop-transition-timing);
+}
+
+.phone-image-crop-overlay.is-visible {
+    opacity: var(--yuzi-phone-crop-overlay-visible-opacity);
+}
+
+.phone-image-crop-overlay.is-dragging,
+.phone-image-crop-overlay.is-dragging * {
+    user-select: none;
+}
+
+.phone-image-crop-dialog {
+    width: min(var(--yuzi-phone-crop-dialog-inline-size), var(--yuzi-phone-crop-dialog-max-width));
+    max-height: min(calc(100% - var(--yuzi-phone-crop-dialog-gutter)), var(--yuzi-phone-crop-dialog-max-height));
+    box-sizing: border-box;
+    padding: var(--yuzi-qq-dialog-padding);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: var(--yuzi-qq-line-width) solid var(--yuzi-qq-line);
+    border-radius: var(--yuzi-qq-radius-dialog);
+    background: var(--yuzi-qq-dialog-surface);
+    box-shadow: var(--yuzi-qq-shadow-dialog);
+    display: flex;
+    flex-direction: column;
+    gap: var(--yuzi-qq-dialog-gap);
+}
+
+.phone-image-crop-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--yuzi-qq-dialog-gap);
+}
+
+.phone-image-crop-title {
+    font-size: var(--yuzi-qq-title-size);
+    font-weight: var(--yuzi-qq-title-weight);
+    color: var(--yuzi-qq-text);
+}
+
+.phone-image-crop-desc,
+.phone-image-crop-meta {
+    font-size: var(--yuzi-qq-caption-size);
+    line-height: var(--yuzi-qq-caption-line-height);
+    color: var(--yuzi-qq-muted);
+}
+
+.phone-image-crop-stage-wrap {
+    border: var(--yuzi-qq-line-width) solid var(--yuzi-qq-line);
+    border-radius: var(--yuzi-qq-radius);
+    background: var(--yuzi-qq-dialog-muted);
+    padding: var(--yuzi-qq-dialog-gap);
+}
+
+.phone-image-crop-stage {
+    position: relative;
+    min-height: var(--yuzi-phone-crop-stage-min-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--yuzi-qq-radius);
+    background: var(--yuzi-qq-dialog-muted);
+}
+
+.phone-image-crop-image {
+    max-width: 100%;
+    max-height: var(--yuzi-phone-crop-image-max-height);
+    display: block;
+    pointer-events: none;
+    user-select: none;
+}
+
+.phone-image-crop-box {
+    position: absolute;
+    border: var(--yuzi-qq-focus-ring-width) solid var(--yuzi-phone-color-white);
+    border-radius: var(--yuzi-qq-radius);
+    box-shadow: var(--yuzi-phone-crop-box-overlay-shadow);
+    cursor: move;
+    touch-action: none;
+}
+
+.phone-image-crop-grid,
+.phone-image-crop-guideline {
+    pointer-events: none;
+}
+
+.phone-image-crop-grid {
+    position: absolute;
+    inset: 0;
+}
+
+.phone-image-crop-guideline {
+    position: absolute;
+    background: var(--yuzi-phone-color-white);
+}
+
+.phone-image-crop-guideline.is-vertical {
+    top: 0;
+    bottom: 0;
+    width: var(--yuzi-qq-line-width);
+}
+
+.phone-image-crop-guideline.is-horizontal {
+    left: 0;
+    right: 0;
+    height: var(--yuzi-qq-line-width);
+}
+
+.phone-image-crop-guideline.is-vertical.is-one {
+    left: var(--yuzi-phone-crop-grid-first-line-position);
+}
+
+.phone-image-crop-guideline.is-vertical.is-two {
+    left: var(--yuzi-phone-crop-grid-second-line-position);
+}
+
+.phone-image-crop-guideline.is-horizontal.is-one {
+    top: var(--yuzi-phone-crop-grid-first-line-position);
+}
+
+.phone-image-crop-guideline.is-horizontal.is-two {
+    top: var(--yuzi-phone-crop-grid-second-line-position);
+}
+
+.phone-image-crop-handle {
+    position: absolute;
+    width: var(--yuzi-phone-crop-handle-size);
+    height: var(--yuzi-phone-crop-handle-size);
+    border-radius: var(--yuzi-phone-radius-pill);
+    border: var(--yuzi-qq-focus-ring-width) solid var(--yuzi-phone-color-white);
+    background: var(--yuzi-qq-accent);
+    box-shadow: var(--yuzi-phone-shadow-soft);
+}
+
+.phone-image-crop-handle[data-handle="nw"] {
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    cursor: nwse-resize;
+}
+
+.phone-image-crop-handle[data-handle="n"] {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: ns-resize;
+}
+
+.phone-image-crop-handle[data-handle="ne"] {
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    cursor: nesw-resize;
+}
+
+.phone-image-crop-handle[data-handle="e"] {
+    top: 50%;
+    right: 0;
+    transform: translate(50%, -50%);
+    cursor: ew-resize;
+}
+
+.phone-image-crop-handle[data-handle="se"] {
+    right: 0;
+    bottom: 0;
+    transform: translate(50%, 50%);
+    cursor: nwse-resize;
+}
+
+.phone-image-crop-handle[data-handle="s"] {
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 50%);
+    cursor: ns-resize;
+}
+
+.phone-image-crop-handle[data-handle="sw"] {
+    left: 0;
+    bottom: 0;
+    transform: translate(-50%, 50%);
+    cursor: nesw-resize;
+}
+
+.phone-image-crop-handle[data-handle="w"] {
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+    cursor: ew-resize;
+}
+
+.phone-image-crop-actions,
+.phone-image-crop-actions-main,
+.phone-image-crop-actions-secondary {
+    display: flex;
+    gap: var(--yuzi-qq-dialog-gap);
+    align-items: center;
+}
+
+.phone-image-crop-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: var(--yuzi-phone-crop-action-z-index);
+    padding-top: var(--yuzi-qq-dialog-gap);
+    justify-content: space-between;
+    background: var(--yuzi-qq-dialog-surface);
+}
+
+.phone-image-crop-actions-main,
+.phone-image-crop-actions-secondary {
+    justify-content: flex-end;
+}
+
+@media screen and (max-width: 520px) {
+    .phone-settings-layout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .phone-settings-home-quick-select {
+        min-width: var(--yuzi-phone-settings-home-quick-select-min-width);
+        max-width: var(--yuzi-phone-settings-home-quick-select-max-width);
+    }
+
+    .phone-settings-toggle-size-row {
+        grid-template-columns: 1fr;
+    }
+
+    .phone-image-crop-overlay {
+        align-items: flex-start;
+        padding:
+            max(var(--yuzi-phone-crop-overlay-padding), env(safe-area-inset-top))
+            max(var(--yuzi-phone-crop-overlay-padding), env(safe-area-inset-right))
+            max(var(--yuzi-phone-crop-overlay-padding), env(safe-area-inset-bottom))
+            max(var(--yuzi-phone-crop-overlay-padding), env(safe-area-inset-left));
+    }
+
+    .phone-image-crop-dialog {
+        width: min(var(--yuzi-phone-crop-dialog-compact-inline-size), var(--yuzi-phone-crop-dialog-max-width));
+        max-height: calc(100% - var(--yuzi-phone-crop-dialog-gutter));
+        padding: var(--yuzi-qq-dialog-padding);
+    }
+
+    .phone-image-crop-stage {
+        min-height: var(--yuzi-phone-crop-stage-compact-min-height);
+    }
+
+    .phone-image-crop-handle {
+        width: var(--yuzi-phone-crop-handle-compact-size);
+        height: var(--yuzi-phone-crop-handle-compact-size);
+    }
+
+    .phone-image-crop-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .phone-image-crop-actions-main {
+        width: 100%;
+    }
+
+    .phone-image-crop-actions-secondary {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .phone-image-crop-actions-main .phone-settings-btn,
+    .phone-image-crop-actions-secondary .phone-settings-btn {
+        flex: 1;
+    }
+}
