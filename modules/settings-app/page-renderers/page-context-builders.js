@@ -6,11 +6,8 @@ const SETTINGS_RENDERER_SERVICE_KEYS = [
     'appearance',
     'qqV2Presets',
     'buttonStyle',
-    'contentPresetWorkshop',
     'worldbookReading',
     'imageGeneration',
-    'tableContentReplacement',
-    'fullscreenOverlay',
     'inputShortcuts',
 ];
 
@@ -36,11 +33,8 @@ export function createSettingsRendererServices(deps = {}) {
         appearance: ensureObject(deps.appearance),
         qqV2Presets: ensureObject(deps.qqV2Presets),
         buttonStyle: ensureObject(deps.buttonStyle),
-        contentPresetWorkshop: ensureObject(deps.contentPresetWorkshop),
         worldbookReading: ensureObject(deps.worldbookReading),
         imageGeneration: ensureObject(deps.imageGeneration),
-        tableContentReplacement: ensureObject(deps.tableContentReplacement),
-        fullscreenOverlay: ensureObject(deps.fullscreenOverlay),
         inputShortcuts: ensureObject(deps.inputShortcuts),
     };
 }
@@ -63,8 +57,6 @@ function buildAppearancePageService(services) {
         buildAppearanceAppCatalog: services.appearance.buildAppearanceAppCatalog,
         setupBgUpload: services.appearance.setupBgUpload,
         setupIconLayoutSettings: services.appearance.setupIconLayoutSettings,
-        setupAppearanceToggles: services.appearance.setupAppearanceToggles,
-        renderHiddenTableAppsList: services.appearance.renderHiddenTableAppsList,
         renderIconUploadList: services.appearance.renderIconUploadList,
         importAppearanceResourcePackFromData: services.appearance.importAppearanceResourcePackFromData,
         listAppearancePacks: services.appearance.listAppearancePacks,
@@ -128,52 +120,6 @@ function buildImageGenerationPageContextFromServices(services) {
         rerenderImageGenerationKeepScroll: services.scroll.rerenderImageGenerationKeepScroll,
         imageGenerationSettingsService: services.imageGeneration,
         qqV2PresetService: services.qqV2Presets,
-        subscribeContentPresetIndex: services.contentPresetWorkshop.subscribe,
-    };
-}
-
-function buildTableContentReplacementPageContextFromServices(services) {
-    return {
-        ...services.common,
-        navigateBack: services.navigation.navigateBack,
-        showToast: services.feedback.showToast,
-        rerenderTableContentReplacementKeepScroll: services.scroll.rerenderTableContentReplacementKeepScroll,
-        tableContentReplacementSettingsService: services.tableContentReplacement,
-    };
-}
-
-function buildFullscreenOverlayPageContextFromServices(services) {
-    return {
-        ...services.common,
-        showToast: services.feedback.showToast,
-        rerenderFullscreenOverlayKeepScroll: services.scroll.rerenderFullscreenOverlayKeepScroll,
-        fullscreenOverlaySettingsService: services.fullscreenOverlay,
-    };
-}
-
-function buildBeautifyTemplatePageContextFromServices(services) {
-    return {
-        ...services.common,
-        showToast: services.feedback.showToast,
-        rerenderBeautifyKeepScroll: services.scroll.rerenderBeautifyKeepScroll,
-        contentPresetWorkshopService: {
-            getSnapshot: services.contentPresetWorkshop.getSnapshot,
-            subscribe: services.contentPresetWorkshop.subscribe,
-            getViewModel: services.contentPresetWorkshop.getViewModel,
-            prepareImport: services.contentPresetWorkshop.prepareImport,
-            importPrepared: services.contentPresetWorkshop.importPrepared,
-            exportPreset: services.contentPresetWorkshop.exportPreset,
-            deletePreset: services.contentPresetWorkshop.deletePreset,
-            setPageActive: services.contentPresetWorkshop.setPageActive,
-            clearPageActive: services.contentPresetWorkshop.clearPageActive,
-            clearAllPageActive: services.contentPresetWorkshop.clearAllPageActive,
-            setPopupActive: services.contentPresetWorkshop.setPopupActive,
-            clearPopupActive: services.contentPresetWorkshop.clearPopupActive,
-            clearAllPopupActive: services.contentPresetWorkshop.clearAllPopupActive,
-            setActive: services.contentPresetWorkshop.setActive,
-            clearActive: services.contentPresetWorkshop.clearActive,
-            clearAllActive: services.contentPresetWorkshop.clearAllActive,
-        },
     };
 }
 
@@ -206,9 +152,6 @@ export function buildAppearancePageContext(deps = {}) { return buildAppearancePa
 export function buildButtonStylePageContext(deps = {}) { return buildButtonStylePageContextFromServices(getSettingsRendererServices(deps)); }
 export function buildWorldbookReadingPageContext(deps = {}) { return buildWorldbookReadingPageContextFromServices(getSettingsRendererServices(deps)); }
 export function buildImageGenerationPageContext(deps = {}) { return buildImageGenerationPageContextFromServices(getSettingsRendererServices(deps)); }
-export function buildTableContentReplacementPageContext(deps = {}) { return buildTableContentReplacementPageContextFromServices(getSettingsRendererServices(deps)); }
-export function buildFullscreenOverlayPageContext(deps = {}) { return buildFullscreenOverlayPageContextFromServices(getSettingsRendererServices(deps)); }
-export function buildBeautifyTemplatePageContext(deps = {}) { return buildBeautifyTemplatePageContextFromServices(getSettingsRendererServices(deps)); }
 export function buildAiInstructionPresetsPageContext(deps = {}) { return buildAiInstructionPresetsPageContextFromServices(getSettingsRendererServices(deps)); }
 export function buildApiPresetsPageContext(deps = {}) { return buildApiPresetsPageContextFromServices(getSettingsRendererServices(deps)); }
 
@@ -222,10 +165,7 @@ export function createSettingsPageContexts(deps = {}) {
         buttonStyle: buildButtonStylePageContextFromServices(services),
         worldbookReading: buildWorldbookReadingPageContextFromServices(services),
         imageGeneration: buildImageGenerationPageContextFromServices(services),
-        tableContentReplacement: buildTableContentReplacementPageContextFromServices(services),
-        fullscreenOverlay: buildFullscreenOverlayPageContextFromServices(services),
         apiPresets: buildApiPresetsPageContextFromServices(services),
-        beautifyTemplate: buildBeautifyTemplatePageContextFromServices(services),
         aiInstructionPresets: buildAiInstructionPresetsPageContextFromServices(services),
     };
 }

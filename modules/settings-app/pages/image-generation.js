@@ -431,8 +431,6 @@ function getTestInput(viewModel = {}) {
 export function buildImageGenerationPageHtml(viewModel = {}) {
     const config = getConfig(viewModel);
     const testInput = getTestInput(viewModel);
-    const mappings = config.roleMappings;
-    const tableDisplaySources = getTableDisplaySources(viewModel, config);
     const sharedResources = clonePresetResources(viewModel.sharedResources);
     const presetServiceAvailable = viewModel.presetServiceAvailable === true;
     const presetBusy = viewModel.presetBusy === true;
@@ -456,21 +454,6 @@ export function buildImageGenerationPageHtml(viewModel = {}) {
             </label>
         `,
     });
-    const tableDisplaySection = tableDisplaySources.length
-        ? buildSettingsSectionHtml({
-            title: '表格美化生图',
-            desc: '控制各表格的生图按钮是否显示。',
-            bodyHtml: tableDisplaySources.map((source) => `
-                <label class="phone-appearance-check-item">
-                    <span class="phone-appearance-check-main">${escapeHtml(source.tableName)}</span>
-                    <input type="checkbox"
-                        class="phone-settings-switch phone-image-generation-table-display-enabled"
-                        data-sheet-key="${escapeHtmlAttr(source.sheetKey)}"
-                        ${source.enabled ? 'checked' : ''}>
-                </label>
-            `).join(''),
-        })
-        : '';
     const translationSection = buildSettingsSectionHtml({
         title: '中文提示词转换',
         desc: '使用所选 API 和生图预设转换提示词，再交给智慧姬。',
@@ -575,22 +558,6 @@ export function buildImageGenerationPageHtml(viewModel = {}) {
             </div>
         `,
     });
-    const mappingsSection = buildSettingsSectionHtml({
-        title: '角色资料映射',
-        desc: '按映射顺序匹配，命中即停；字段按表格列顺序拼接。',
-        actionsHtml: '<button type="button" class="phone-settings-btn" id="phone-image-generation-add-mapping">添加映射</button>',
-        bodyHtml: `
-            <div id="phone-image-generation-mappings">
-                ${mappings.length
-                    ? mappings.map((mapping, index) => buildMappingCardHtml(viewModel, mapping, index, mappings.length)).join('')
-                    : '<div class="phone-empty-msg">未配置映射，也可用人名和描述生图。</div>'}
-            </div>
-            <div class="phone-settings-action phone-settings-action-wrap">
-                <button type="button" class="phone-settings-btn phone-settings-btn-danger"
-                    id="phone-image-generation-clear-mappings" ${mappings.length ? '' : 'disabled'}>清空映射</button>
-            </div>
-        `,
-    });
     const requestSection = buildSettingsSectionHtml({
         title: '请求设置',
         desc: '超时仅停止等待，不会取消后台生图。',
@@ -605,7 +572,7 @@ export function buildImageGenerationPageHtml(viewModel = {}) {
     return buildSettingsPageFrame({
         title: '生图设置',
         bodyClass: 'phone-app-body phone-settings-scroll phone-image-generation-page',
-        bodyHtml: `${engineSection}${tableDisplaySection}${translationSection}${testSection}${mappingsSection}${requestSection}`,
+        bodyHtml: `${engineSection}${translationSection}${testSection}${requestSection}`,
     });
 }
 
@@ -1516,11 +1483,6 @@ function createImageGenerationPageSession(ctx) {
     return {
         activate() {
             state.active = true;
-            clearContentPresetIndexSubscription();
-            const cleanup = ctx?.subscribeContentPresetIndex?.(() => {
-                if (isActive()) void load();
-            });
-            if (typeof cleanup === 'function') state.contentPresetIndexCleanup = cleanup;
             paint();
             void load();
         },

@@ -1,4 +1,3 @@
-import { getTableData } from '../../../phone-core/data-api.js';
 import {
     getPhoneSettings,
     savePhoneSettingsPatch,
@@ -334,12 +333,7 @@ function createExportResource({ id, name, dataUrl, source = 'settings', slotKey 
 }
 
 function collectActiveIconKeys() {
-    const rawData = getTableData();
-    if (!rawData) {
-        return { keys: new Set(), available: false };
-    }
-
-    const slots = collectAppearanceIconSlots(rawData);
+    const slots = collectAppearanceIconSlots();
     return {
         keys: new Set(slots.map((slot) => slot.key).filter(Boolean)),
         available: true,

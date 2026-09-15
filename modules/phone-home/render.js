@@ -6,7 +6,7 @@
  * 通过动态 import 的入口。
  *
  * 渲染流程：
- *   1. 读取 phoneSettings + tableData 算出尺寸/布局/badge
+ *   1. 读取 phoneSettings 算出尺寸/布局
  *   2. ensureHomeShell(container)：复用既有 shell DOM 或重建（路线图阶段三 step_13 类似的 in-place patch 思路）
  *   3. ensureHomeInteractionRuntime(container)：拿到 runtime（销毁时自动清理）
  *   4. 通过 view-model.js 计算 apps + dockApps
@@ -16,13 +16,7 @@
  * 注意：ensureHomeShell 必须保留"复用既有节点"路径，这是首屏不闪烁的关键。
  */
 
-import {
-    getTableData,
-    getSheetKeys,
-    openVisualizerWithStatus,
-    openDatabaseUiWithStatus,
-} from '../phone-core/data-api.js';
-import { getCurrentRoute, navigateTo } from '../phone-core/routing.js';
+import { navigateTo } from '../phone-core/routing.js';
 import { defaultSettings, getPhoneSettings } from '../settings.js';
 import { escapeHtmlAttr } from '../utils/dom-escape.js';
 import { clampNumber } from '../utils/object.js';
@@ -33,16 +27,10 @@ import {
     normalizeQQHomeUnreadTotal,
 } from './qq-unread.js';
 import { bindHomeDockInteractions, bindHomeGridInteractions } from './interactions.js';
-import { buildHomeShellStyleText, buildHomeShellHtml, buildHomeAppItemHtml, buildDockItemHtml, buildStatusBarHtml } from './templates.js';
+import { buildHomeShellStyleText, buildHomeShellHtml, buildHomeAppItemHtml, buildDockItemHtml } from './templates.js';
 import { ensureHomeInteractionRuntime } from './runtime.js';
-import { resolveStatusBarData } from './status-bar-data.js';
 import { getQQV2Facade } from '../qq-v2/runtime/default-runtime.js';
 import { QQ_APP } from '../qq-v2/app-definition.js';
-import { buildTableNavigationContext } from '../table-navigation/catalog.js';
-
-const HOME_TABLE_READY_RETRY_DELAY_MS = 500;
-const HOME_TABLE_READY_RETRY_MAX = 6;
-const HOME_TABLE_READY_RETRY_KEY = '__yuziHomeTableReadyRetry';
 
 function resolveHomeAppLabelColorTokens(mode) {
     if (mode === 'black') {
@@ -74,15 +62,12 @@ export function ensureHomeShell(container, homeShellStyle) {
     const currentRoot = container.querySelector('[data-home-shell="root"]') || container.querySelector('.phone-home');
     const currentGrid = container.querySelector('[data-shell-region="home-grid"]') || container.querySelector('.phone-app-grid');
     const currentDock = container.querySelector('[data-shell-region="home-dock"]') || container.querySelector('.phone-dock');
-    const currentStatusBar = container.querySelector('[data-shell-region="home-status-bar"]');
-
     if (currentRoot instanceof HTMLElement && currentGrid instanceof HTMLElement && currentDock instanceof HTMLElement) {
         currentRoot.setAttribute('style', String(homeShellStyle || ''));
         return {
             root: currentRoot,
             grid: currentGrid,
             dock: currentDock,
-            statusBar: currentStatusBar,
             bootstrapped: false,
         };
     }
@@ -93,7 +78,6 @@ export function ensureHomeShell(container, homeShellStyle) {
         root: container.querySelector('[data-home-shell="root"]') || container.querySelector('.phone-home'),
         grid: container.querySelector('[data-shell-region="home-grid"]') || container.querySelector('.phone-app-grid'),
         dock: container.querySelector('[data-shell-region="home-dock"]') || container.querySelector('.phone-dock'),
-        statusBar: container.querySelector('[data-shell-region="home-status-bar"]'),
         bootstrapped: true,
     };
 }
@@ -120,7 +104,7 @@ export function patchHomeGrid(grid, apps = []) {
 
         if (item.badgeText) {
             const badge = document.createElement('div');
-            badge.className = 'phone-table-count-badge';
+            badge.className = 'phone-app-count-badge';
             badge.textContent = item.badgeText;
             badge.setAttribute('aria-label', `总条目数 ${item.totalCount}`);
             const iconWrap = app.querySelector('.phone-app-icon');
@@ -165,7 +149,7 @@ export function patchQQHomeUnreadBadge(grid, unreadTotal = 0) {
 
     const normalizedTotal = normalizeQQHomeUnreadTotal(unreadTotal);
     const badgeText = formatQQHomeUnreadBadge(normalizedTotal);
-    let badge = iconWrap.querySelector('.phone-table-count-badge');
+    let badge = iconWrap.querySelector('.phone-app-count-badge');
     if (!badgeText) {
         badge?.remove();
         return true;
@@ -173,61 +157,11 @@ export function patchQQHomeUnreadBadge(grid, unreadTotal = 0) {
 
     if (!(badge instanceof HTMLElement)) {
         badge = document.createElement('div');
-        badge.className = 'phone-table-count-badge';
+        badge.className = 'phone-app-count-badge';
         iconWrap.appendChild(badge);
     }
     badge.textContent = badgeText;
     badge.setAttribute('aria-label', `未读消息 ${normalizedTotal}`);
-    return true;
-}
-
-function scheduleHomeTableReadyRetry(container, runtime, navigationContext) {
-    const host = /** @type {any} */ (container);
-    const existingStop = host[HOME_TABLE_READY_RETRY_KEY];
-
-    if (navigationContext?.catalog?.length > 0) {
-        if (typeof existingStop === 'function') existingStop();
-        return false;
-    }
-    if (typeof existingStop === 'function') return false;
-
-    let remainingAttempts = HOME_TABLE_READY_RETRY_MAX;
-    let intervalId = null;
-    let unregisterCleanup = () => {};
-
-    const stop = () => {
-        if (intervalId !== null) {
-            runtime.clearInterval(intervalId);
-            intervalId = null;
-        }
-        if (host[HOME_TABLE_READY_RETRY_KEY] === stop) {
-            delete host[HOME_TABLE_READY_RETRY_KEY];
-        }
-        unregisterCleanup();
-        unregisterCleanup = () => {};
-    };
-
-    intervalId = runtime.setInterval(() => {
-        const phoneContainer = container.closest('#yuzi-phone-standalone');
-        if (runtime.isDisposed()
-            || getCurrentRoute() !== 'home'
-            || !phoneContainer?.classList.contains('visible')) {
-            stop();
-            return;
-        }
-
-        remainingAttempts -= 1;
-        if (getSheetKeys(getTableData()).length > 0) {
-            stop();
-            renderHomeScreen(container);
-            return;
-        }
-
-        if (remainingAttempts <= 0) stop();
-    }, HOME_TABLE_READY_RETRY_DELAY_MS);
-
-    host[HOME_TABLE_READY_RETRY_KEY] = stop;
-    unregisterCleanup = runtime.registerCleanup(stop);
     return true;
 }
 
@@ -238,7 +172,6 @@ function scheduleHomeTableReadyRetry(container, runtime, navigationContext) {
 export function renderHomeScreen(container) {
     if (!(container instanceof HTMLElement)) return;
 
-    const rawData = getTableData();
     const phoneSettings = getPhoneSettings();
 
     const appIconSize = clampNumber(phoneSettings.appIconSize, 40, 88, defaultSettings.appIconSize);
@@ -279,47 +212,15 @@ export function renderHomeScreen(container) {
             patchQQHomeUnreadBadge(grid, qqUnreadTotal);
         },
     });
-    const navigationContext = rawData ? buildTableNavigationContext(rawData) : null;
-    const viewModel = buildHomeScreenViewModel(rawData, phoneSettings, {
+    const viewModel = buildHomeScreenViewModel(phoneSettings, {
         qqUnreadTotal: unreadProjection?.getTotal() || 0,
-        navigationContext,
     });
     patchHomeGrid(grid, viewModel.apps);
     bindHomeGridInteractions(grid, { navigateTo, runtime: interactionRuntime });
 
-    const statusBarData = resolveStatusBarData(rawData);
-    patchStatusBar(shell.statusBar, statusBarData, shell.root);
-
     patchHomeDock(dock, viewModel.dockApps);
     bindHomeDockInteractions(dock, viewModel.dockApps, container, {
         navigateTo,
-        openVisualizerWithStatus,
-        openDatabaseUiWithStatus,
         runtime: interactionRuntime,
     });
-    scheduleHomeTableReadyRetry(container, interactionRuntime, navigationContext);
-}
-
-
-/**
- * 局部更新主屏时间栏内容。
- * @param {HTMLElement | null | undefined} statusBarEl
- * @param {object} data
- * @param {HTMLElement | null | undefined} rootEl
- */
-export function patchStatusBar(statusBarEl, data, rootEl) {
-    if (!(statusBarEl instanceof HTMLElement)) return;
-
-    const hasData = data && (data.currentTime || data.weekday || data.dayStatus || data.weather || data.majorEvent);
-
-    if (!hasData) {
-        statusBarEl.style.display = 'none';
-        statusBarEl.innerHTML = '';
-        if (rootEl instanceof HTMLElement) rootEl.classList.remove('has-status-bar');
-        return;
-    }
-
-    if (rootEl instanceof HTMLElement) rootEl.classList.add('has-status-bar');
-    statusBarEl.style.display = '';
-    statusBarEl.innerHTML = buildStatusBarHtml(data);
 }

@@ -121,7 +121,7 @@ function showPhoneStatus() {
 }
 
 function showPhoneHelp() {
-    Logger.info('[玉子手机] Slash 命令帮助:\n/yuziphone\n/yuziphone open\n/yuziphone close\n/yuziphone toggle\n/yuziphone reset\n/yuziphone status\n/yuziphone help\n/yuziphone-table <表名>\n/yuziphone-tables\n/yuziphone-settings reset\n/yuziphone-settings export\n/yuziphone-settings import <JSON>');
+    Logger.info('[玉子手机] Slash 命令帮助:\n/yuziphone\n/yuziphone open\n/yuziphone close\n/yuziphone toggle\n/yuziphone reset\n/yuziphone status\n/yuziphone help\n/yuziphone-settings reset\n/yuziphone-settings export\n/yuziphone-settings import <JSON>');
     showNotification('Slash 命令帮助已输出到控制台', 'info');
 }
 
@@ -161,46 +161,6 @@ function normalizeCommandResult(result, defaultSuccessMessage = '操作已完成
     }
 
     return { ok: true, message: defaultSuccessMessage };
-}
-
-export function handleTableCommand(args) {
-    const tableName = String(args ?? '').trim();
-
-    if (!tableName) {
-        showNotification('请指定表格名称: /yuziphone-table <表名或sheetKey>', 'warning');
-        return;
-    }
-
-    try {
-        const handler = getCommandHandler('open-table');
-        if (handler) {
-            const result = normalizeCommandResult(handler(tableName), `已打开表格「${tableName}」`);
-            showNotification(result.message, result.ok ? 'success' : 'warning');
-        } else {
-            showNotification('表格打开功能暂不可用', 'warning');
-        }
-    } catch (error) {
-        handleError(error, `打开表格失败: ${tableName}`);
-    }
-}
-
-export function handleListTablesCommand() {
-    try {
-        const handler = getCommandHandler('list-tables');
-        if (handler) {
-            const tables = handler();
-            if (Array.isArray(tables) && tables.length > 0) {
-                const message = ['📋 可用表格列表', '─'.repeat(20), ...tables.map(tableName => `• ${tableName}`)].join('\n');
-                showNotification(message, 'info');
-            } else {
-                showNotification('暂无可用表格', 'info');
-            }
-        } else {
-            showNotification('表格列表功能暂不可用', 'warning');
-        }
-    } catch (error) {
-        handleError(error, '获取表格列表失败');
-    }
 }
 
 export async function handleSettingsCommand(args) {
@@ -305,8 +265,6 @@ export function createFallbackSlashCommands() {
         'yuziphone-open': () => executePhoneAction('open'),
         'yuziphone-close': () => executePhoneAction('close'),
         'yuziphone-toggle': () => executePhoneAction('toggle'),
-        'yuziphone-table': handleTableCommand,
-        'yuziphone-tables': handleListTablesCommand,
         'yuziphone-settings': handleSettingsCommand,
     };
 }

@@ -18,7 +18,7 @@ export function mountPhoneBootstrapUi(options = {}) {
     createPhoneToggleButton({ onToggle });
 
     // toggle 按钮挂载完成后，在浏览器空闲时段预热路由模块；
-    // 让首次进入 settings/fusion/variable-manager 不再阻塞下载。
+    // 让首次进入 settings 不再阻塞下载。
     schedulePreloadRouteModules();
 
     return getMountedPhoneBootstrapUi();

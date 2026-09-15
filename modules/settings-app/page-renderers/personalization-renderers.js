@@ -12,13 +12,8 @@ import {
     renderImageGenerationPage as renderImageGenerationPagePage,
 } from '../pages/image-generation.js';
 import {
-    createFullscreenOverlayPage,
-    renderFullscreenOverlayPage as renderFullscreenOverlayPagePage,
-} from '../pages/fullscreen-overlay.js';
-import {
     buildAppearancePageContext,
     buildButtonStylePageContext,
-    buildFullscreenOverlayPageContext,
     buildHomePageContext,
     buildLogsPageContext,
     buildInputShortcutsPageContext,
@@ -47,7 +42,6 @@ export function createPersonalizationPageRenderers(rendererScope = {}) {
     const buttonStyleContext = pageContexts.buttonStyle || buildButtonStylePageContext(deps);
     const worldbookReadingContext = pageContexts.worldbookReading || buildWorldbookReadingPageContext(deps);
     const imageGenerationContext = pageContexts.imageGeneration || buildImageGenerationPageContext(deps);
-    const fullscreenOverlayContext = pageContexts.fullscreenOverlay || buildFullscreenOverlayPageContext(deps);
 
     const renderHomePage = () => {
         renderHomePagePage(homeContext);
@@ -67,10 +61,6 @@ export function createPersonalizationPageRenderers(rendererScope = {}) {
 
     const renderImageGenerationPage = () => {
         renderImageGenerationPagePage(imageGenerationContext);
-    };
-
-    const renderFullscreenOverlayPage = () => {
-        renderFullscreenOverlayPagePage(fullscreenOverlayContext);
     };
 
     return {
@@ -102,17 +92,11 @@ export function createPersonalizationPageRenderers(rendererScope = {}) {
                     return createImageGenerationPage(imageGenerationContext);
                 },
             },
-            fullscreen_overlay: {
-                createPage() {
-                    return createFullscreenOverlayPage(fullscreenOverlayContext);
-                },
-            },
         },
         renderHomePage,
         renderAppearancePage,
         renderButtonStylePage,
         renderWorldbookReadingPage,
         renderImageGenerationPage,
-        renderFullscreenOverlayPage,
     };
 }

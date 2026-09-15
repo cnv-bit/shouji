@@ -2,15 +2,7 @@ import {
     onChatChanged,
     onChatDeleted,
     onGroupChatDeleted,
-    onCharacterLoaded,
-    onAppReady,
     onMessageReceived,
-    onUserMessageRendered,
-    onCharacterMessageRendered,
-    onMessageUpdated,
-    onMessageDeleted,
-    onGenerationEnded,
-    onGenerationAfterCommands,
 } from '../integration/event-bridge.js';
 import { resolveCurrentHostIdentity } from '../integration/chat-identity.js';
 import { createHostChatDeletedFact } from '../qq-v2/host/lifecycle.js';
@@ -36,8 +28,6 @@ function dispatchQQV2Event(callback, eventName, ...args) {
 
 export async function registerPhoneEventListeners(options = {}) {
     const {
-        onVisiblePhoneRefresh,
-        onBackgroundChatChanged,
         onQQV2ChatChanged,
         onQQV2ChatDeleted,
         onQQV2GroupChatDeleted,
@@ -48,12 +38,7 @@ export async function registerPhoneEventListeners(options = {}) {
     try {
         await onChatChanged((chatId) => {
             Logger.info('聊天切换:', chatId);
-            onBackgroundChatChanged?.(chatId);
             dispatchQQV2Event(onQQV2ChatChanged, '聊天切换', chatId);
-            const container = document.getElementById(DOM_IDS.container);
-            if (container && container.classList.contains('visible')) {
-                onVisiblePhoneRefresh?.();
-            }
         });
 
         await onChatDeleted((chatFile) => {
@@ -74,42 +59,9 @@ export async function registerPhoneEventListeners(options = {}) {
             dispatchQQV2Event(onQQV2GroupChatDeleted, '群聊聊天删除', fact);
         });
 
-        await onCharacterLoaded((characterId) => {
-            Logger.info('角色加载:', characterId);
-        });
-
-        await onAppReady(() => {
-            Logger.info('SillyTavern 应用就绪');
-        });
-
-        await onUserMessageRendered((messageId) => {
-            Logger.debug('用户消息渲染完成:', messageId);
-        });
-
         await onMessageReceived((messageId, generationType) => {
             Logger.debug('角色消息已写入正文:', messageId, generationType);
             dispatchQQV2Event(onQQV2MessageReceived, '正文角色消息写入', messageId, generationType);
-        });
-
-        await onCharacterMessageRendered((messageId, generationType) => {
-            Logger.debug('角色消息渲染完成:', messageId, generationType);
-        });
-
-        await onMessageUpdated((messageId) => {
-            Logger.debug('消息更新:', messageId);
-        });
-
-        await onMessageDeleted((messageId) => {
-            Logger.debug('消息删除:', messageId);
-        });
-
-        await onGenerationEnded(() => {
-            Logger.debug('AI 生成结束');
-        });
-
-        await onGenerationAfterCommands((type, params, dryRun) => {
-            if (dryRun) return;
-            Logger.debug('生成前命令处理:', { type, params });
         });
 
         Logger.debug('事件监听器已注册');

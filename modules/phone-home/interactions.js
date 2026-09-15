@@ -1,5 +1,3 @@
-import { handleDockAction } from './actions.js';
-
 const HOME_GRID_BOUND_FLAG = 'homeGridInteractionsBound';
 const HOME_DOCK_BOUND_FLAG = 'homeDockInteractionsBound';
 const HOME_DOCK_APPS_REF = 'homeDockAppsRef';
@@ -80,14 +78,7 @@ export function bindHomeGridInteractions(grid, deps = {}) {
 }
 
 export function bindHomeDockInteractions(dock, dockApps, container, deps = {}) {
-    const {
-        navigateTo,
-        openVisualizerWithStatus,
-        openDatabaseUiWithStatus,
-        openDatabaseSettingsWithStatus,
-        runtime,
-    } = deps;
-    const openDatabaseEntryWithStatus = openDatabaseUiWithStatus || openDatabaseSettingsWithStatus;
+    const { navigateTo, runtime } = deps;
 
     if (!(dock instanceof HTMLElement)) return;
 
@@ -129,12 +120,7 @@ export function bindHomeDockInteractions(dock, dockApps, container, deps = {}) {
         }
         scheduleRuntimeTimeout(runtime, () => {
             if (isRuntimeDisposed(runtime)) return;
-            handleDockAction(app, container, {
-                navigateTo,
-                openVisualizerWithStatus,
-                openDatabaseUiWithStatus: openDatabaseEntryWithStatus,
-                runtime,
-            });
+            requestHomeAppNavigation(app.route, navigateTo);
         }, 150);
     }, { passive: true });
 }

@@ -1,8 +1,5 @@
 import { Logger } from '../error-handler.js';
-import { getTableData } from '../phone-core/data-api.js';
-import { navigateTo } from '../phone-core/routing.js';
 import { defaultSettings, extensionName } from '../settings.js';
-import { buildTableNavigationCatalog } from '../table-navigation/catalog.js';
 import { DOM_IDS, resetPhoneTogglePosition } from './toggle-button.js';
 
 const logger = Logger.withScope({ scope: 'bootstrap/command-registry', feature: 'slash' });
@@ -13,148 +10,6 @@ function getPhoneContainer() {
 
 function getPhoneToggle() {
     return document.getElementById(DOM_IDS.toggle);
-}
-
-function normalizeCommandText(value) {
-    return String(value ?? '').trim();
-}
-
-function normalizeLookupText(value) {
-    return normalizeCommandText(value).toLowerCase();
-}
-
-function getAvailableTableEntries(rawData = getTableData()) {
-    if (!rawData || typeof rawData !== 'object') {
-        return [];
-    }
-
-    return buildTableNavigationCatalog(rawData)
-        .map((catalogEntry) => {
-            const sheet = rawData[catalogEntry.sheetKey];
-            const content = Array.isArray(sheet?.content) ? sheet.content : [];
-            return {
-                ...catalogEntry,
-                rowCount: Math.max(0, content.length - 1),
-            };
-        })
-        .filter((entry) => entry.sheetKey);
-}
-
-function findDuplicateTableNames(entries) {
-    const counts = new Map();
-    entries.forEach((entry) => {
-        const key = normalizeLookupText(entry.tableName);
-        counts.set(key, (counts.get(key) || 0) + 1);
-    });
-    return counts;
-}
-
-function formatTableListItem(entry, duplicateNameCounts = findDuplicateTableNames([entry])) {
-    const duplicateCount = duplicateNameCounts.get(normalizeLookupText(entry.tableName)) || 0;
-    const suffix = duplicateCount > 1 ? ` (${entry.sheetKey})` : '';
-    return `${entry.tableName}${suffix} - ${entry.rowCount} 条`;
-}
-
-function resolveTableEntry(rawQuery, entries = getAvailableTableEntries()) {
-    const query = normalizeCommandText(rawQuery);
-    if (!query) {
-        return { ok: false, code: 'empty_query', message: '请指定表格名称: /yuziphone-table <表名或sheetKey>' };
-    }
-
-    if (entries.length === 0) {
-        return { ok: false, code: 'empty_tables', message: '暂无可用表格，无法打开' };
-    }
-
-    const bySheetKey = entries.find((entry) => entry.sheetKey === query);
-    if (bySheetKey) {
-        return { ok: true, entry: bySheetKey };
-    }
-
-    const exactNameMatches = entries.filter((entry) => entry.tableName === query);
-    if (exactNameMatches.length === 1) {
-        return { ok: true, entry: exactNameMatches[0] };
-    }
-    if (exactNameMatches.length > 1) {
-        return {
-            ok: false,
-            code: 'duplicate_name',
-            message: `存在多个名为「${query}」的表格，请使用 sheetKey: ${exactNameMatches.map(entry => entry.sheetKey).join(', ')}`,
-        };
-    }
-
-    const normalizedQuery = normalizeLookupText(query);
-    const looseNameMatches = entries.filter((entry) => normalizeLookupText(entry.tableName) === normalizedQuery);
-    if (looseNameMatches.length === 1) {
-        return { ok: true, entry: looseNameMatches[0] };
-    }
-    if (looseNameMatches.length > 1) {
-        return {
-            ok: false,
-            code: 'duplicate_name_case_insensitive',
-            message: `存在多个名称匹配「${query}」的表格，请使用 sheetKey: ${looseNameMatches.map(entry => entry.sheetKey).join(', ')}`,
-        };
-    }
-
-    return {
-        ok: false,
-        code: 'not_found',
-        message: `未找到表格「${query}」，可使用 /yuziphone-tables 查看可用表格`,
-    };
-}
-
-function openTableInPhone(tableName, togglePhone, deps = {}) {
-    const readAvailableTableEntries = deps.getAvailableTableEntries || getAvailableTableEntries;
-    const navigate = deps.navigateTo || navigateTo;
-    const resolved = resolveTableEntry(tableName, readAvailableTableEntries());
-    if (!resolved.ok) {
-        return resolved;
-    }
-
-    const entry = resolved.entry;
-    const route = normalizeCommandText(entry.route);
-    if (!route) {
-        return {
-            ok: false,
-            code: 'route_unavailable',
-            message: `表格「${entry.tableName}」没有可用导航路由`,
-            sheetKey: entry.sheetKey,
-            tableName: entry.tableName,
-        };
-    }
-    const visible = typeof togglePhone === 'function' ? togglePhone(true) : false;
-    if (visible === false) {
-        return {
-            ok: false,
-            code: 'phone_unavailable',
-            message: '手机界面不可用，无法打开表格',
-            sheetKey: entry.sheetKey,
-            tableName: entry.tableName,
-        };
-    }
-
-    navigate(route);
-    return {
-        ok: true,
-        code: 'opened',
-        message: `已打开表格「${entry.tableName}」`,
-        sheetKey: entry.sheetKey,
-        tableName: entry.tableName,
-    };
-}
-
-export function __test__createOpenTableInPhone(deps = {}) {
-    const readTableData = typeof deps.getTableData === 'function' ? deps.getTableData : getTableData;
-    const navigate = typeof deps.navigateTo === 'function' ? deps.navigateTo : navigateTo;
-    return (tableName, togglePhone) => openTableInPhone(tableName, togglePhone, {
-        getAvailableTableEntries: () => getAvailableTableEntries(readTableData()),
-        navigateTo: navigate,
-    });
-}
-
-function listAvailableTables() {
-    const entries = getAvailableTableEntries();
-    const duplicateNameCounts = findDuplicateTableNames(entries);
-    return entries.map((entry) => formatTableListItem(entry, duplicateNameCounts));
 }
 
 function parseSettingsImportPayload(rawPayload) {
@@ -302,23 +157,6 @@ export function registerPhoneSlashCommandHandlers(options = {}) {
                 break;
         }
     });
-
-    registerCommandHandler('open-table', (tableName) => {
-        const result = openTableInPhone(tableName, togglePhone);
-        logger.info({
-            action: 'open-table',
-            message: result.ok ? '表格打开命令已执行' : '表格打开命令失败',
-            context: {
-                query: normalizeCommandText(tableName),
-                code: result.code,
-                sheetKey: result.sheetKey || '',
-                tableName: result.tableName || '',
-            },
-        });
-        return result;
-    });
-
-    registerCommandHandler('list-tables', () => listAvailableTables());
 
     registerCommandHandler('reset-settings', () => {
         const wasVisible = getPhoneContainer()?.classList.contains('visible');

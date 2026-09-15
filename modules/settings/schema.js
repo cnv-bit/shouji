@@ -1,7 +1,5 @@
 import { normalizeInputShortcutsSettings } from '../input-shortcuts/config.js';
-import { normalizeFullscreenOverlaySettings } from '../fullscreen-overlay/settings.js';
 import { Logger } from '../error-handler.js';
-import { normalizeTableContentReplacementSettings } from '../table-content-replacement/config.js';
 import {
     normalizeImagePromptOutputFilterSettings,
 } from '../image-generation/prompt-output-filter.js';
@@ -119,7 +117,6 @@ export const APPEARANCE_FONT_LIBRARY_LIMITS = Object.freeze({
 
 export const defaultSettings = {
     inputShortcuts: normalizeInputShortcutsSettings(),
-    fullscreenOverlay: normalizeFullscreenOverlaySettings(),
     enabled: true,
     floatingToggleEnabled: true,
     phoneToggleX: null,
@@ -135,12 +132,8 @@ export const defaultSettings = {
     appIconSize: 64,
     appIconRadius: 14,
     appGridGap: 20.667,
-    hideTableCountBadge: false,
     homeAppLabelColorMode: 'white',
     phoneThemeMode: 'light',
-    hiddenTableApps: {},
-    beautifyTemplateSourceModeGeneric: 'builtin',
-    beautifyActiveTemplateIdGeneric: 'builtin.generic.table.v1',
     dockIconSize: 64,
     phoneToggleStyleSize: 40,
     phoneToggleStyleShape: 'circle',
@@ -166,7 +159,6 @@ export const defaultSettings = {
         promptTranslationApiPresetId: IMAGE_GENERATION_DEFAULTS.promptTranslationApiPresetId,
         promptTranslationPresetId: IMAGE_GENERATION_DEFAULTS.promptTranslationPresetId,
     },
-    tableContentReplacement: normalizeTableContentReplacementSettings(null),
 };
 
 export const REMOVED_SETTING_KEYS = new Set([
@@ -178,6 +170,12 @@ export const REMOVED_SETTING_KEYS = new Set([
     'worldbookSelection',
     'beautifyTemplateSourceModeSpecial',
     'beautifyActiveTemplateIdsSpecial',
+    'beautifyTemplateSourceModeGeneric',
+    'beautifyActiveTemplateIdGeneric',
+    'hideTableCountBadge',
+    'hiddenTableApps',
+    'fullscreenOverlay',
+    'tableContentReplacement',
 ]);
 
 const validationRules = {
@@ -192,7 +190,6 @@ const validationRules = {
     phoneToggleStyleShape: { enum: ['circle', 'rounded'], type: 'string' },
     enabled: { type: 'boolean' },
     floatingToggleEnabled: { type: 'boolean' },
-    hideTableCountBadge: { type: 'boolean' },
     homeAppLabelColorMode: { type: 'string', enum: ['white', 'black'] },
     phoneThemeMode: { type: 'string', enum: ['light', 'dark'] },
     backgroundImage: { type: 'string', nullable: true },
@@ -200,14 +197,12 @@ const validationRules = {
     appearanceActivePackId: { type: 'string', maxLength: 160 },
     appIcons: { type: 'object' },
     appIconOrigins: { type: 'object' },
-    hiddenTableApps: { type: 'object' },
     appearanceResourcePool: { type: 'object' },
     appearanceFontLibrary: { type: 'object' },
     phoneReadableTextScalePercent: { min: 80, max: 160, type: 'number' },
     worldbookReadingSelection: { type: 'object' },
     worldbookReadingBlockedKeywords: { type: 'array' },
     imageGeneration: { type: 'object' },
-    tableContentReplacement: { type: 'object' },
 };
 
 export function cloneSettingsValue(value) {
@@ -680,7 +675,6 @@ export function validateSetting(key, value) {
     }
 
     if (key === 'inputShortcuts') return { valid: true, value: normalizeInputShortcutsSettings(value) };
-    if (key === 'fullscreenOverlay') return { valid: true, value: normalizeFullscreenOverlaySettings(value) };
 
     const rule = validationRules[key];
 
@@ -760,10 +754,6 @@ export function validateSetting(key, value) {
             if (key === 'imageGeneration') {
                 return createSettingsValidationResult(key, normalizeImageGenerationSettings(value));
             }
-            if (key === 'tableContentReplacement') {
-                return createSettingsValidationResult(key, normalizeTableContentReplacementSettings(value));
-            }
-
             return { valid: true, value: cloneSettingsValue(value) };
         }
 
@@ -776,9 +766,7 @@ export function validateSettings(settings) {
     const validated = {
         ...defaultSettings,
         inputShortcuts: normalizeInputShortcutsSettings(),
-        fullscreenOverlay: normalizeFullscreenOverlaySettings(),
         imageGeneration: normalizeImageGenerationSettings(defaultSettings.imageGeneration),
-        tableContentReplacement: normalizeTableContentReplacementSettings(defaultSettings.tableContentReplacement),
     };
 
     if (!settings || typeof settings !== 'object') {
@@ -804,10 +792,6 @@ export function validateSettings(settings) {
 
     validated.appIconOrigins = normalizeAppIconOriginsSettings(settings.appIconOrigins);
 
-    if (typeof settings.hiddenTableApps === 'object' && !Array.isArray(settings.hiddenTableApps)) {
-        validated.hiddenTableApps = { ...settings.hiddenTableApps };
-    }
-
     validated.appearanceResourcePool = normalizeAppearanceResourcePoolSettings(settings.appearanceResourcePool);
     validated.appearanceFontLibrary = normalizeAppearanceFontLibrarySettings(settings.appearanceFontLibrary);
     validated.worldbookReadingSelection = normalizeWorldbookReadingSelectionSettings(settings.worldbookReadingSelection);
@@ -815,7 +799,5 @@ export function validateSettings(settings) {
         settings.worldbookReadingBlockedKeywords,
     );
     validated.imageGeneration = normalizeImageGenerationSettings(settings.imageGeneration);
-    validated.tableContentReplacement = normalizeTableContentReplacementSettings(settings.tableContentReplacement);
-
     return validated;
 }

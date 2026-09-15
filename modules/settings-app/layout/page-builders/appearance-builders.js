@@ -26,7 +26,6 @@ function buildFontLibraryOptionsHtml(fontLibrary) {
 
 export function buildAppearancePageHtml({
     layoutValues,
-    hideTableCountBadge,
     homeAppLabelColorMode = 'white',
     phoneThemeMode = 'light',
     fontLibrary = {},
@@ -49,7 +48,7 @@ export function buildAppearancePageHtml({
         chips: [
             { text: `${layoutValues.appGridColumns} 列网格`, tone: 'info' },
             { text: `图标 ${layoutValues.appIconSize}px`, tone: 'soft' },
-            { text: hideTableCountBadge ? '数量徽标已隐藏' : '数量徽标显示中', tone: 'neutral' },
+            { text: 'QQ 与设置', tone: 'neutral' },
         ],
     });
 
@@ -196,24 +195,6 @@ export function buildAppearancePageHtml({
                     </label>
                 </div>
             `,
-        })}
-
-        ${buildSettingsSectionHtml({
-            title: '显示控制',
-            bodyHtml: `
-                <div class="phone-appearance-switch-list">
-                    <label class="phone-appearance-switch-item" for="phone-hide-table-count-badge">
-                        <span class="phone-appearance-switch-main">隐藏数量徽标</span>
-                        <input type="checkbox" id="phone-hide-table-count-badge" class="phone-settings-switch" ${hideTableCountBadge ? 'checked' : ''}>
-                    </label>
-                </div>
-            `,
-        })}
-
-        ${buildSettingsSectionHtml({
-            title: '隐藏表格类 App',
-            desc: '勾选后在首页隐藏。',
-            bodyHtml: `<div id="phone-hidden-table-apps" class="phone-appearance-checklist"></div>`,
         })}
 
         ${buildSettingsSectionHtml({

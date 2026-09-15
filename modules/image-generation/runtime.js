@@ -1,4 +1,3 @@
-import { getTableDataAsync } from '../phone-core/data-api.js';
 import {
     getPhoneSettings,
     normalizeImageGenerationSettings,
@@ -22,7 +21,7 @@ export function createPhoneImageGenerationRuntime(options = {}) {
         : getPhoneSettings;
     const tableReader = typeof options.tableReader === 'function'
         ? options.tableReader
-        : getTableDataAsync;
+        : async () => ({});
     const promptComposer = typeof options.composeCharacterImagePrompt === 'function'
         ? options.composeCharacterImagePrompt
         : composePrompt;

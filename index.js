@@ -54,17 +54,8 @@ import {
     bindPhoneBootstrapWindowEvents,
     registerPhoneEventListeners,
 } from './modules/bootstrap/event-registry.js';
-import { repairActiveBeautifyTemplateSettings } from './modules/phone-beautify-templates/repository.js';
-import { initializeContentPresetIndex } from './modules/content-presets/startup.js';
-import { subscribeTableUpdate } from './modules/phone-core/callbacks.js';
-import {
-    handlePhoneBackgroundChatChanged,
-    startPhoneBackgroundServices,
-    stopPhoneBackgroundServices,
-} from './modules/phone-core/background-services.js';
 import { getCurrentRoute } from './modules/phone-core/routing.js';
-import { requestCurrentPhoneRouteRender, requestHomePhoneRouteRender } from './modules/phone-core/route-runtime.js';
-import { markPhoneRouteRefreshPending } from './modules/phone-core/state.js';
+import { requestCurrentPhoneRouteRender } from './modules/phone-core/route-runtime.js';
 import {
     destroyQQV2Runtime,
     handleQQV2ChatChanged,
@@ -91,14 +82,10 @@ const LEGACY_INSTANCE_TRACE_IDS = Object.freeze([
     'yuzi-phone-settings',
 ]);
 const PHONE_CONTAINER_ID = 'yuzi-phone-standalone';
-const HOME_REFRESH_SETTLE_DELAY_MS = 250;
-const HOME_REFRESH_WAIT_TIMEOUT_MS = 3500;
 let initRetryTimeoutId = null;
 let isDestroying = false;
 let singletonBlocked = false;
 let singletonBlockReason = '';
-let pendingHomeRefresh = null;
-let homeRefreshTokenCounter = 0;
 
 function getInstanceHost() {
     return typeof window !== 'undefined' ? window : globalThis;
@@ -181,48 +168,6 @@ function clearInitRetryTimeout() {
     initRetryTimeoutId = null;
 }
 
-function cancelPendingHomeRefresh(reason = 'cancel') {
-    const pending = pendingHomeRefresh;
-    if (!pending) return false;
-
-    pendingHomeRefresh = null;
-    pending.cancelled = true;
-    pending.stage = 'cancelled';
-
-    if (pending.timeoutId !== null) {
-        window.clearTimeout(pending.timeoutId);
-        pending.timeoutId = null;
-    }
-
-    if (pending.settleDelayId !== null) {
-        window.clearTimeout(pending.settleDelayId);
-        pending.settleDelayId = null;
-    }
-
-    if (typeof pending.unsubscribe === 'function') {
-        try {
-            pending.unsubscribe();
-        } catch (error) {
-            logger.warn({
-                feature: 'home-refresh',
-                action: 'pending.unsubscribe',
-                message: '主页刷新等待器订阅清理失败',
-                context: { reason, token: pending.token },
-                error,
-            });
-        }
-        pending.unsubscribe = null;
-    }
-
-    logger.debug({
-        feature: 'home-refresh',
-        action: 'pending.cancel',
-        message: '主页刷新等待器已清理',
-        context: { reason, token: pending.token },
-    });
-    return true;
-}
-
 function isPhoneVisibleForHomeRefresh() {
     if (typeof document === 'undefined' || typeof document.getElementById !== 'function') {
         return false;
@@ -230,118 +175,6 @@ function isPhoneVisibleForHomeRefresh() {
 
     const container = document.getElementById(PHONE_CONTAINER_ID);
     return !!container && container.classList.contains('visible');
-}
-
-function scheduleVisibleHomeRefreshAfterTableUpdate() {
-    cancelPendingHomeRefresh('replace');
-
-    if (isDestroying) {
-        return false;
-    }
-
-    if (!isPhoneVisibleForHomeRefresh()) {
-        return false;
-    }
-
-    if (getCurrentRoute() !== 'home') {
-        logger.debug({
-            feature: 'home-refresh',
-            action: 'pending.skip',
-            message: '聊天切换后主页刷新跳过：当前 route 不是 home',
-            context: { route: getCurrentRoute() },
-        });
-        return false;
-    }
-
-    const token = homeRefreshTokenCounter + 1;
-    homeRefreshTokenCounter = token;
-
-    const pending = {
-        token,
-        stage: 'waiting-table-update',
-        updateCount: 0,
-        cancelled: false,
-        timeoutId: null,
-        settleDelayId: null,
-        unsubscribe: null,
-    };
-
-    const onTableUpdate = () => {
-        if (pendingHomeRefresh !== pending || pending.cancelled || pending.token !== token) return;
-        if (pending.stage !== 'waiting-table-update') return;
-
-        // shujuku 在 CHAT_CHANGED 后会先发送运行时清空通知，再发送重建完成后的最终通知。
-        // 第一段通知是切换中间态，必须忽略；第二段通知才代表当前聊天数据库最终态，
-        // 即使最终态没有 sheet_* 表，也应该允许主页刷新为空表。
-        pending.updateCount += 1;
-        if (pending.updateCount < 2) {
-            logger.debug({
-                feature: 'home-refresh',
-                action: 'pending.wait-second-update',
-                message: '聊天切换后主页刷新等待第二段表格更新信号',
-                context: { token, updateCount: pending.updateCount },
-            });
-            return;
-        }
-
-        logger.debug({
-            feature: 'home-refresh',
-            action: 'pending.second-update-received',
-            message: '聊天切换后主页刷新已收到第二段表格更新信号，进入稳定等待',
-            context: { token, updateCount: pending.updateCount },
-        });
-
-        pending.stage = 'settling';
-
-        if (typeof pending.unsubscribe === 'function') {
-            try {
-                pending.unsubscribe();
-            } catch (error) {
-                logger.warn({
-                    feature: 'home-refresh',
-                    action: 'pending.unsubscribe',
-                    message: '主页刷新等待器订阅清理失败',
-                    context: { reason: 'table-update', token },
-                    error,
-                });
-            }
-            pending.unsubscribe = null;
-        }
-
-        if (pending.timeoutId !== null) {
-            window.clearTimeout(pending.timeoutId);
-            pending.timeoutId = null;
-        }
-
-        pending.settleDelayId = window.setTimeout(() => {
-            if (pendingHomeRefresh !== pending || pending.cancelled || pending.token !== token || pending.stage !== 'settling') {
-                return;
-            }
-
-            try {
-                if (!isDestroying && isPhoneVisibleForHomeRefresh() && getCurrentRoute() === 'home') {
-                    void requestHomePhoneRouteRender({
-                        reason: 'chat-change-table-update',
-                    });
-                }
-            } finally {
-                cancelPendingHomeRefresh('settled');
-            }
-        }, HOME_REFRESH_SETTLE_DELAY_MS);
-    };
-
-    pendingHomeRefresh = pending;
-    pending.unsubscribe = subscribeTableUpdate(onTableUpdate);
-    pending.timeoutId = window.setTimeout(() => {
-        cancelPendingHomeRefresh('timeout');
-    }, HOME_REFRESH_WAIT_TIMEOUT_MS);
-
-    return true;
-}
-
-function handlePhoneBackgroundChatChangedAndMarkRoute(chatId) {
-    markPhoneRouteRefreshPending('chat-changed');
-    return handlePhoneBackgroundChatChanged(chatId);
 }
 
 async function handleQQV2ChatChangedAndRefreshRoute(chatId) {
@@ -378,14 +211,11 @@ function setPhoneEnabledWithUI(enabled) {
         const result = setPhoneBootstrapEnabledState(true, {
             onToggle: togglePhone,
         });
-        startPhoneBackgroundServices('settings-enabled');
         inputShortcutsHost.start();
         return result;
     }
 
     inputShortcutsHost.stop();
-    stopPhoneBackgroundServices('settings-disabled');
-    cancelPendingHomeRefresh('settings-disabled');
     destroyPhoneRuntime();
     return setPhoneBootstrapEnabledState(false, {
         onToggle: togglePhone,
@@ -415,8 +245,6 @@ function setupSlashCommandHandlers() {
  */
 async function registerEventListeners() {
     await registerPhoneEventListeners({
-        onBackgroundChatChanged: handlePhoneBackgroundChatChangedAndMarkRoute,
-        onVisiblePhoneRefresh: scheduleVisibleHomeRefreshAfterTableUpdate,
         onQQV2ChatChanged: handleQQV2ChatChangedAndRefreshRoute,
         onQQV2ChatDeleted: handleQQV2ChatDeleted,
         onQQV2GroupChatDeleted: handleQQV2GroupChatDeleted,
@@ -500,15 +328,10 @@ async function doInitialize() {
     });
 
     if (settings?.enabled !== false) {
-        startPhoneBackgroundServices('initialize-enabled');
         inputShortcutsHost.start();
     } else {
         inputShortcutsHost.stop();
-        stopPhoneBackgroundServices('initialize-disabled');
     }
-
-    repairActiveBeautifyTemplateSettings();
-    void initializeContentPresetIndex();
 
     // 6. 注册 Slash 命令
     if (registerSlashCommands()) {
@@ -564,7 +387,6 @@ async function doInitialize() {
         } catch (error) {
             setOwnedInstanceStatus('failed', { lastError: error?.message || String(error) });
             inputShortcutsHost.stop();
-            stopPhoneBackgroundServices('initialize-failed');
             destroyQQV2Runtime();
             releaseSingletonGuard();
             handleError(error, '玉子手机初始化失败');
@@ -615,11 +437,9 @@ export function destroy() {
     }
 
     isDestroying = true;
-    cancelPendingHomeRefresh('destroy');
 
     try {
         inputShortcutsHost.stop();
-        stopPhoneBackgroundServices('extension-destroy');
         logger.info({
             feature: 'lifecycle',
             action: 'destroy.start',
@@ -655,7 +475,6 @@ export function destroy() {
         handleError(error, '卸载错误');
     } finally {
         setOwnedInstanceStatus('destroyed');
-        cancelPendingHomeRefresh('destroy-finally');
         clearInitRetryTimeout();
         resetInitializationState();
         releaseSingletonGuard();

@@ -172,7 +172,7 @@
     white-space: nowrap;
 }
 
-.phone-home .phone-table-count-badge {
+.phone-home .phone-app-count-badge {
     background: var(--yuzi-phone-home-badge-bg);
     border-color: var(--yuzi-phone-home-badge-bg);
     color: var(--yuzi-phone-home-badge-fg);

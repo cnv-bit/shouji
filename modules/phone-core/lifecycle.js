@@ -1,5 +1,4 @@
 import { Logger } from '../error-handler.js';
-import { scheduleIdleTask } from '../runtime-manager.js';
 import {
     applyAppearanceFontLibrary,
     applyPhoneThemeMode,
@@ -8,8 +7,6 @@ import {
 import { destroyPhoneWindowInteractions } from '../window/runtime.js';
 import { initPhoneShellDrag } from '../window/drag.js';
 import { initPhoneShellResize } from '../window/resize.js';
-import { unregisterTableFillStartListener, unregisterTableUpdateListener, initSmartRefreshListener } from './callbacks.js';
-import { debugCheckAPI } from './data-api.js';
 import {
     consumePhoneRouteRefreshPending,
     notifyPhoneActivity,
@@ -71,20 +68,6 @@ function startStatusClock(state = getPhoneCoreState()) {
     return true;
 }
 
-function clearIdleApiDebugTask(state = getPhoneCoreState()) {
-    if (!state.idleApiDebugCancel) return;
-    state.idleApiDebugCancel();
-    state.idleApiDebugCancel = null;
-}
-
-function scheduleIdleApiDebugTask(state = getPhoneCoreState()) {
-    clearIdleApiDebugTask(state);
-    state.idleApiDebugCancel = scheduleIdleTask(() => {
-        debugCheckAPI();
-        getPhoneCoreState().idleApiDebugCancel = null;
-    }, { timeout: 1200 });
-}
-
 function clearShellInteractionTimer(state = getPhoneCoreState()) {
     if (state.shellInteractionTimerId === null) return;
     phoneRuntime.clearTimeout(state.shellInteractionTimerId);
@@ -135,8 +118,6 @@ function clearRouteRenderSubscription(state = getPhoneCoreState()) {
 
 function initializePhoneRuntimeBindings(state = getPhoneCoreState()) {
     ensureRouteRenderSubscription(state);
-    scheduleIdleApiDebugTask(state);
-    initSmartRefreshListener();
     scheduleShellWindowInteractions(state);
 
     logger.debug({
@@ -192,10 +173,7 @@ function deactivatePhoneRuntimeState(state = getPhoneCoreState()) {
 }
 
 function cleanupPhoneRuntimeBindings(state = getPhoneCoreState()) {
-    clearIdleApiDebugTask(state);
     clearRouteRenderSubscription(state);
-    unregisterTableUpdateListener();
-    unregisterTableFillStartListener();
     destroyPhoneWindowInteractions();
     disposeShellAppControls(state);
 

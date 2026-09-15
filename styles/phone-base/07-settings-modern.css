@@ -708,8 +708,7 @@
 }
 
 /* ========== Settings App Wabi-Sabi Redesign ========== */
-.phone-settings-page .phone-nav-bar,
-.phone-fusion-page .phone-nav-bar {
+.phone-settings-page .phone-nav-bar {
     --yuzi-phone-nav-background: color-mix(in srgb, var(--yuzi-settings-surface, #F5F3EF) 92%, transparent);
     --yuzi-phone-nav-border-color: color-mix(in srgb, var(--yuzi-settings-text-primary, #3A3731) 6%, transparent);
     --yuzi-phone-nav-action-color: var(--yuzi-settings-accent, #5B7A6A);
@@ -1148,19 +1147,9 @@
     color: var(--yuzi-settings-accent, #5B7A6A);
 }
 
-.phone-settings-home-item.is-beautify .phone-settings-home-icon {
-    background: color-mix(in srgb, var(--yuzi-settings-warning, #A68B5B) 8%, transparent);
-    color: var(--yuzi-settings-warning, #A68B5B);
-}
-
 .phone-settings-home-item.is-button .phone-settings-home-icon {
     background: color-mix(in srgb, var(--yuzi-settings-accent, #5B7A6A) 8%, transparent);
     color: var(--yuzi-settings-accent, #5B7A6A);
-}
-
-.phone-settings-home-item.is-database .phone-settings-home-icon {
-    background: color-mix(in srgb, var(--yuzi-settings-success, #5B7A6A) 8%, transparent);
-    color: var(--yuzi-settings-success, #5B7A6A);
 }
 
 .phone-settings-home-item.is-ai .phone-settings-home-icon {

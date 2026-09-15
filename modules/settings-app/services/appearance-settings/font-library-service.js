@@ -217,8 +217,6 @@ function buildBuiltinFontFaceCss(font) {
 function buildScopedFontOverrideCss(activeFont) {
     const cssFamily = activeFont?.cssFamily ? String(activeFont.cssFamily) : getBuiltinFontById(DEFAULT_FONT_ID).family;
     const selector = [
-        '.yuzi-phone-fullscreen-overlay-layer',
-        '.yuzi-phone-fullscreen-overlay-layer *:not(svg):not(svg *):not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(code):not(pre):not(kbd):not(samp)',
         `#${FONT_CONTAINER_ID}[data-yuzi-phone-font-id]`,
         `#${FONT_CONTAINER_ID}[data-yuzi-phone-font-id] .yuzi-phone-shell`,
         `#${FONT_CONTAINER_ID}[data-yuzi-phone-font-id] .phone-page`,
@@ -229,8 +227,6 @@ function buildScopedFontOverrideCss(activeFont) {
         `#${FONT_CONTAINER_ID}[data-yuzi-phone-font-id] .phone-home`,
         `#${FONT_CONTAINER_ID}[data-yuzi-phone-font-id] .phone-home *:not(svg):not(svg *):not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(.monospace):not(.phone-monospace):not(code):not(pre):not(kbd):not(samp):not(input):not(textarea):not(select)`,
         `#${FONT_CONTAINER_ID}[data-yuzi-phone-font-id] .phone-settings-page *:not(svg):not(svg *):not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(.monospace):not(.phone-monospace):not(code):not(pre):not(kbd):not(samp):not(input):not(textarea):not(select)`,
-        `#${FONT_CONTAINER_ID}[data-yuzi-phone-font-id] .phone-table-page *:not(svg):not(svg *):not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(.monospace):not(.phone-monospace):not(code):not(pre):not(kbd):not(samp):not(input):not(textarea):not(select)`,
-        `#${FONT_CONTAINER_ID}[data-yuzi-phone-font-id] .phone-generic-template-scope *:not(svg):not(svg *):not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(.monospace):not(.phone-monospace):not(code):not(pre):not(kbd):not(samp):not(input):not(textarea):not(select)`,
     ].join(',\n');
 
     return `${selector} { font-family: ${cssFamily} !important; }\n`

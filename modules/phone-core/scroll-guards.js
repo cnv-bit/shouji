@@ -6,7 +6,7 @@ const PHONE_TOUCH_GUARD_BOUND_ATTR = 'phoneTouchGuardBound';
 const PHONE_SCROLL_EDGE_EPSILON = 1;
 const PHONE_SCROLL_EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"]';
 const PHONE_SCROLL_DEBUG_GLOBAL_KEY = 'TAMAKO_PHONE_SCROLL_DEBUG';
-const PHONE_SCROLL_DEBUG_CANDIDATE_SELECTOR = '.phone-app-body, .phone-app-grid, .phone-table-body, .phone-nav-list, .phone-row-detail-card, .phone-settings-scroll';
+const PHONE_SCROLL_DEBUG_CANDIDATE_SELECTOR = '.phone-app-body, .phone-app-grid, .phone-settings-scroll';
 const PHONE_INTERACTION_GUARD_BOUND_ATTR = 'phoneInteractionGuardBound';
 const SCROLL_DEBUG_CHANNEL = 'ScrollDebug';
 const logger = Logger.withScope({ scope: 'phone-core/scroll-guards', feature: 'scroll-guards' });
@@ -318,7 +318,7 @@ export function bindPhoneScrollGuards(scope) {
 function shouldBlockPointerDefault(target) {
     if (!(target instanceof Element)) return false;
     if (target.closest(PHONE_SCROLL_EDITABLE_SELECTOR)) return false;
-    return !!target.closest('.phone-nav-list-item, .phone-cell-lock-btn, .phone-row-lock-chip, .phone-list-bottom-btn, .phone-detail-bottom-btn');
+    return !!target.closest('button, a, [role="button"], [data-route], [data-dock-app-id]');
 }
 
 export function hardenPhoneInteractionDefaults(scope) {

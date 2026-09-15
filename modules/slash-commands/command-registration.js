@@ -1,5 +1,5 @@
 import { Logger } from '../error-handler.js';
-import { createFallbackSlashCommands, handleListTablesCommand, handlePhoneCommand, handleSettingsCommand, handleTableCommand } from './command-actions.js';
+import { createFallbackSlashCommands, handlePhoneCommand, handleSettingsCommand } from './command-actions.js';
 import { clearFallbackSlashCommands, registerFallbackSlashCommands } from './host-adapter.js';
 import { addRegisteredCommand, getRegisteredCommandsSnapshot } from './state.js';
 
@@ -23,16 +23,6 @@ const SLASH_COMMAND_DEFINITIONS = Object.freeze([
         name: 'yuziphone-toggle',
         handler: () => handlePhoneCommand('toggle'),
         description: '切换玉子手机状态',
-    },
-    {
-        name: 'yuziphone-table',
-        handler: handleTableCommand,
-        description: '在手机中打开指定表格：/yuziphone-table <表名>',
-    },
-    {
-        name: 'yuziphone-tables',
-        handler: handleListTablesCommand,
-        description: '列出所有可用表格',
     },
     {
         name: 'yuziphone-settings',

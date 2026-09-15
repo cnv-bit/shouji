@@ -3,7 +3,7 @@
  * 玉子的手机 - 路由模块预热
  *
  * [`route-renderer.js`](modules/phone-core/route-renderer.js:24) 用动态 import 实现路由懒加载——这意味着
- * 用户首次进入 settings/fusion/variable-manager 时浏览器才开始下载这些模块，会有 50-300ms 白屏。
+ * 用户首次进入 settings 时浏览器才开始下载该模块，会有短暂白屏。
  *
  * 本模块的职责是：在用户准备打开手机（toggle 按钮挂载完成）的空闲时间，
  * 通过 <link rel="modulepreload"> 把所有路由入口模块预先下载到浏览器缓存。
@@ -31,13 +31,7 @@ const logger = Logger.withScope({ scope: 'phone-core/preload', feature: 'route' 
  */
 const ROUTE_MODULES = [
     '../phone-home/render.js',
-    '../table-update-review/index.js',
-    '../table-navigation/catalog.js',
-    '../table-viewer/render.js',
-    '../phone-theater/render.js',
     '../settings-app/render.js',
-    '../phone-fusion/render.js',
-    '../variable-manager/index.js',
 ];
 
 let preloadScheduled = false;

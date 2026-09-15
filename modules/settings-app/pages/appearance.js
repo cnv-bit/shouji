@@ -398,8 +398,6 @@ export function renderAppearancePage(ctx) {
     const buildAppearanceAppCatalog = appearancePageService.buildAppearanceAppCatalog;
     const setupBgUpload = appearancePageService.setupBgUpload;
     const setupIconLayoutSettings = appearancePageService.setupIconLayoutSettings;
-    const setupAppearanceToggles = appearancePageService.setupAppearanceToggles;
-    const renderHiddenTableAppsList = appearancePageService.renderHiddenTableAppsList;
     const renderIconUploadList = appearancePageService.renderIconUploadList;
     const getAppearanceFontLibraryViewModel = appearancePageService.getAppearanceFontLibraryViewModel;
     const applyAppearanceFontLibrary = appearancePageService.applyAppearanceFontLibrary;
@@ -421,11 +419,9 @@ export function renderAppearancePage(ctx) {
     };
     const appearanceAppCatalog = buildAppearanceAppCatalog();
     const iconSlots = appearanceAppCatalog.iconSlots;
-    const visibilityItems = iconSlots.filter(item => item.type !== 'dock');
 
     container.innerHTML = buildAppearancePageHtml({
         layoutValues,
-        hideTableCountBadge: !!getPhoneSettings().hideTableCountBadge,
         homeAppLabelColorMode: getHomeAppLabelColorModeValue(),
         phoneThemeMode: getPhoneThemeModeValue(),
         fontLibrary: getAppearanceFontLibraryViewModel(),
@@ -451,11 +447,6 @@ export function renderAppearancePage(ctx) {
     if (runtime?.registerCleanup) {
         runtime.registerCleanup(setupBgUpload(container, { runtime }));
         runtime.registerCleanup(setupIconLayoutSettings(container));
-        runtime.registerCleanup(setupAppearanceToggles(container));
-        runtime.registerCleanup(renderHiddenTableAppsList(
-            container.querySelector('#phone-hidden-table-apps'),
-            { items: visibilityItems },
-        ));
         runtime.registerCleanup(renderIconUploadList(
             container.querySelector('#phone-icon-upload-list'),
             { runtime, items: iconSlots },
@@ -468,11 +459,6 @@ export function renderAppearancePage(ctx) {
     } else if (typeof registerCleanup === 'function') {
         registerCleanup(setupBgUpload(container));
         registerCleanup(setupIconLayoutSettings(container));
-        registerCleanup(setupAppearanceToggles(container));
-        registerCleanup(renderHiddenTableAppsList(
-            container.querySelector('#phone-hidden-table-apps'),
-            { items: visibilityItems },
-        ));
         registerCleanup(renderIconUploadList(
             container.querySelector('#phone-icon-upload-list'),
             { items: iconSlots },

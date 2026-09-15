@@ -1,133 +1,39 @@
-# 📱 Yuzi Phone 玉子手机
+# 玉子 QQ 独立版
 
-SillyTavern 独立手机扩展，提供手机主屏、QQ 实时聊天、通用表格、Theater 小剧场、世界书工作台与设置管理能力。
+从玉子手机中保留“小手机 Shell + 设置 App + 完整 QQ”垂直链路的 SillyTavern 第三方扩展。
 
-## 功能
+## 保留功能
 
-- 📱 手机容器：支持悬浮显示、拖拽移动、缩放与位置记忆
-- 🏠 主屏与 App：提供主屏入口、表格查看与设置页面
-- 💬 QQ：独立会话、联系人和消息存储，使用用户配置的 OpenAI 兼容接口
-- 🔐 API 预设：QQ 密钥不以明文字段保存在常规预设记录中
-- 📚 世界书工作台：选择手机系统读取的世界书和条目
-- 🖼️ QQ 媒体消息：图片、语音、表情和转账属于 QQ 自己的数据模型
-- 🎨 表格与场景美化：通用表模板与 Theater scene 各自渲染
-- ⚙️ 数据与设置：支持数据库表格、外观和独立本地存储
+- 小手机悬浮窗、拖拽、缩放、关闭、位置与外观设置
+- QQ 联系人、助手、群聊、会话、消息、主动消息及 IndexedDB 持久化
+- 图片、语音、视频、表情、转账等现有 QQ 业务
+- 自建 OpenAI 兼容 API 预设，可拉取模型、保存并为 QQ 选择当前 API
+- AI 指令预设、QQ 提示词、SillyTavern 上下文与只读世界书注入
+- QQ 图片生成、提示词翻译与媒体上传
+
+本版不依赖神·数据库，也不提供数据库表格、Theater、Fusion、变量管理和数据库当前 API。QQ 自有 IndexedDB 数据库仍保留。
+
+## 安装
+
+在 SillyTavern 的“扩展”页面选择“安装扩展”，填写：
+
+```text
+https://github.com/cnv-bit/shouji
+```
+
+安装完成后重启 SillyTavern。测试时请先卸载原版玉子手机，避免两套扩展同时挂载。
 
 ## 开发与发布
 
-本扩展是 SillyTavern 原生第三方扩展，`manifest.json` 实际加载 `dist/yuzi-phone.bundle.js` 与 `dist/yuzi-phone.bundle.css`。源码入口是 `index.js` 与 `style.css`，构建规则见 `BUILD.md`。
-
-发布前必须执行：
-
-```cmd
-npm run lint
-npm run check
-npm run check:ci
-npm run tables:check
-npm run tables:build
+```powershell
+npm install
 npm run build
+npm run check
 ```
 
-`dist/` 必须提交；SillyTavern `auto_update` 只拉取仓库内容，不会替用户执行构建。表格模板事实源位于 `tables/sources/`，正式表源为 `小剧场2.1` 与 `纪要`，`恋爱特化参考` 是参考源；修改表源后必须先通过 `tables:check`，再用 `tables:build` 更新 `tables/generated/`。
+`manifest.json` 直接加载以下构建产物，因此发布时必须一并提交 `dist/`：
 
-发布链路由 contract checks 守护：脚本版 loader 互斥与 `window.__YUZI_PHONE_INSTANCE__` singleton guard 由 `scripts/check-script-loader-contract.cjs` 检查；版本字段由 `scripts/check-extension-version-contract.cjs` 检查；release/dist 链路由 `scripts/check-release-chain-contract.cjs` 检查；表源边界由 `scripts/check-table-sources-contract.cjs` 检查。
+- `dist/yuzi-qq-only.bundle.js`
+- `dist/yuzi-qq-only.bundle.css`
 
-## 更新日志
-
-### 2.3.0
-
-- 优化体验。
-
-### 2.2.2
-
-- 优化体验。
-
-### 2.2.1
-
-- 优化体验。
-
-### 2.2.0
-
-- 性能优化。
-
-### 2.1.0
-
-- 修复bug
-
-### 2.0.0
-
-- 优化体验。
-
-### 1.4.2
-
-- **直播界面重设计**：重新打磨直播相关美化界面，强化阅读层级、互动氛围和手机端观感。
-- **新增小日历表**：加入更轻量的日历记录入口，给 ccb 之后的空档互动一个明确去处，没事干也能继续推进日常感。
-- **纪要表时间关系修正**：纪要表新增“与今天的关系”字段，用来区分前天、大前天、半个月前、十年前等时间关系，减少 AI 把所有过去都当成“昨天”的离谱误判。
-- **P1 架构审计收口**：补齐 singleton loader guard、Settings flush/panel cleanup、Fusion Object URL 清理、MVU bounded wait meta、批量删除 partial failure、详情页外部更新一致性，以及 release/table source contract 文档台账。
-- **填表提示词优化**：优化表格填写提示词，让字段说明更贴合当前表结构，降低乱填、漏填和时间理解偏差。
-
-### 1.4.1
-
-
-- **数据库 API 写入链路收口**：新增、保存、删除等表格变更统一走数据库 API / 行级写入链路，不再依赖整表覆盖式保存。通用表和小剧场删除都更接近真实数据库操作模型，降低并发覆盖、状态污染和回滚困难的风险。
-- **输入与列表流畅度优化**：输入、搜索和列表局部刷新路径继续收紧，减少不必要的整页重渲染和焦点干扰，让通用表搜索与长列表操作更顺滑。
-- **高清壁纸显示修复**：背景上传默认不再牺牲清晰度，壁纸预算提高，并移除主页遮罩层的模糊滤镜。高清图不该上传后糊成马赛克，那不是风格，是事故。
-- **官方美化包导入导出**：界面外观提供外观资源包导入/导出，只打包当前背景与当前自定义图标；导入图标先全局按资源 `name` 精准匹配当前图标位名称，剩余图标再按名称相似度从高到低匹配，仍未匹配的图标按剩余图标位顺序补位，`slotKey` 不再参与导入分配；导入会替换当前图标，多余图标直接丢弃，失败时回滚。
-- **字体库功能上线**：界面外观新增字体选择与字体导入，支持内置字体、用户字体、预览、删除和小手机作用域 `@font-face` 注入，避免被 SillyTavern 主题样式轻易覆盖。
-- **悬浮窗与 QR 开关完善**：设置页新增悬浮窗开关，QR / Slash 的“玉子手机” toggle 在悬浮按钮隐藏时仍可打开或关闭手机，不再把入口绑死在浮窗按钮上；当前推荐 QR 命令为 `/yuziphone-toggle`。
-- **顶部更新弹窗禁用**：移除手机顶部更新提示弹窗对视野的遮挡，避免点击后自动跳转打断当前操作。
-- **当前图标与隐藏旧图标清理**：自定义图标区域会列出当前 `appIcons` 内的全部图标，包括不再对应当前图标位的隐藏旧图标，可逐个删除，避免幽灵资源继续占容量。
-- **小剧场与通用表删除反馈收口**：小剧场和通用表删除改为更明确的行级删除计划、刷新反馈和失败提示，减少“看起来删了但其实没同步”的假成功。
-
-### 1.4.0
-
-
-- **工程结构全面重构**：入口、Bootstrap、Phone Core、路由渲染、数据桥、设置页、小剧场、模板美化等模块边界重新收敛，生命周期清理、事件桥接、存储事实源与发布链路都进入更可验证的规则中，后续扩展不再靠“到处塞逻辑”硬撑。
-- **SQL 数据库能力正式进入主舞台**：围绕神·数据库 / SQLite 模式完善表格读取、写入、配置、锁管理与 API 预设桥接，通用表与剧情数据可以更稳定地对接数据库插件能力，不再只是前端把 JSON 摊开看看。
-- **通用表格体验升级**：通用表列表与详情链路重整，支持左右翻页式浏览、搜索、排序、锁定、删除与新增行等高频操作，列表刷新采用更细粒度的 DOM 更新思路，表多、行多时也不必像翻旧账本一样痛苦。
-- **小剧场表系全部重构**：广场、论坛、直播等小剧场表不再是散落的定制页面，而是被收进 Theater scene registry、跨表投影、统一 shell、级联删除与独立 scene 样式体系中，新增同类场景也有清晰契约，不再把核心层改成分支地狱。
-- **通用表格、设置页与模板缝合全面美化**：通用模板、设置 App、Beautify 模板与 Fusion 缝合链路整体换新，视觉层级、按钮布局、配置入口和反馈体验都重新打磨，更像一个真正能长期使用的小手机系统，而不是临时拼起来的调试面板。
-- **发布与质量门禁升级**：切换为 esbuild 单 bundle 发布，manifest 加载 `dist/yuzi-phone.bundle.js` 与 `dist/yuzi-phone.bundle.css`；普通检查与 CI contract 基线检查均要求全量通过，`dist/` 仍随仓库提交，安装更新更直接。
-
-### 1.3.5
-优化用户体验，修复已知bug
-
-### 1.3.3
-优化用户体验，修复已知bug
-
-### 1.3.2
-
-- 通用表格列表页新增正序/倒序切换按钮，位于顶部工具区右侧
-- 修复删除管理态下管理栏底部出现过重黑色阴影的问题
-
-### 1.2.0
-
-- 新增 Slash 命令系统
-- 新增错误处理与日志收口
-- 新增虚拟滚动、批量处理、防抖节流等性能工具
-
-### 1.1.3
-
-- 优化 SillyTavern 事件系统与 TavernHelper 集成
-- 改进通知、设置与整体代码结构
-
-### 1.1.2
-
-- 修复手机端滚动问题
-- 优化路由历史、事件清理与缓存处理
-- 移除 jQuery 依赖，改为原生 DOM 操作
-
-## 安装说明
-
-### URL 安装
-
-1. 打开 SillyTavern
-2. 进入“扩展” → “安装扩展”
-3. 输入仓库地址：`https://github.com/yuzi83/st-yuzi-phone`
-4. 安装后重启 SillyTavern
-
-### 手动安装
-
-1. 下载项目压缩包或最新 Release
-2. 解压到 `SillyTavern/public/scripts/extensions/third-party/st-yuzi-phone`
-3. 重启 SillyTavern
+计划内契约检查只覆盖 QQ 路由、生命周期、设置 Facade 与资源链路；最终交互与宿主兼容性由 SillyTavern 实机验收。

@@ -15,13 +15,6 @@ export const SETTINGS_ENTRY_META = {
         tone: 'is-appearance',
         badge: '桌面',
     },
-    beautify: {
-        glyph: '模',
-        title: '模板工坊',
-        description: '管理小剧场与通用表格模板',
-        tone: 'is-beautify',
-        badge: '模板',
-    },
     button_style: {
         glyph: '控',
         title: '控件与按钮',
@@ -39,7 +32,7 @@ export const SETTINGS_ENTRY_META = {
     image_generation: {
         glyph: '绘',
         title: '生图设置',
-        description: '配置智慧姬、角色资料映射与测试生成',
+        description: '配置 QQ 生图、提示词翻译与测试生成',
         tone: 'is-image-generation',
         badge: '图片',
     },
@@ -56,20 +49,6 @@ export const SETTINGS_ENTRY_META = {
         description: '管理 QQ 聊天回复与主动消息的分段提示词',
         tone: 'is-ai',
         badge: '提示词',
-    },
-    table_content_replacement: {
-        glyph: '换',
-        title: '表格内容词汇替换',
-        description: '按全局或单表规则批量替换普通文字',
-        tone: 'is-table-content-replacement',
-        badge: '表格',
-    },
-    fullscreen_overlay: {
-        glyph: '幕',
-        title: '弹幕设置',
-        description: '管理表格内容的全屏浮层展示',
-        tone: 'is-fullscreen-overlay',
-        badge: '浮层',
     },
 };
 

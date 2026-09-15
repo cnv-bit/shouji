@@ -1,4 +1,16 @@
-import { getSheetKeys } from '../phone-core/data-api.js';
+function getSheetKeys(rawData) {
+    if (!rawData || typeof rawData !== 'object') return [];
+    return Object.keys(rawData)
+        .filter(key => key.startsWith('sheet_'))
+        .sort((left, right) => {
+            const leftSheet = rawData[left];
+            const rightSheet = rawData[right];
+            const leftOrder = Number.isFinite(leftSheet?.orderNo) ? leftSheet.orderNo : Infinity;
+            const rightOrder = Number.isFinite(rightSheet?.orderNo) ? rightSheet.orderNo : Infinity;
+            if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+            return String(leftSheet?.name || left).localeCompare(String(rightSheet?.name || right));
+        });
+}
 
 function normalizeText(value) {
     return String(value ?? '').trim();

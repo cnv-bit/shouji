@@ -8,7 +8,7 @@
  *     这类统一 cleanup 语义，避免 observer 生命周期分散实现
  *
  * 新代码优先直接使用 [`createRuntimeScope()`](modules/runtime-manager.js:48)；
- * 这里保留 EventManager 仅为了让既有调用方（toggle-button / table-viewer 等）零改动迁移。
+ * 这里保留 EventManager 供 bootstrap 与浮窗控件统一清理监听器。
  */
 
 import { createRuntimeScope } from '../runtime-manager.js';

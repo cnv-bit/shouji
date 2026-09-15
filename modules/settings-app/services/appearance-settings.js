@@ -9,11 +9,6 @@ export { setupBgUpload } from './appearance-settings/background-service.js';
 export { buildAppearanceAppCatalog } from './appearance-settings/icon-slots.js';
 
 export {
-    setupAppearanceToggles,
-    renderHiddenTableAppsList,
-} from './appearance-settings/visibility-settings.js';
-
-export {
     setupIconLayoutSettings,
     getLayoutValue,
 } from './appearance-settings/layout-settings.js';

@@ -98,6 +98,22 @@ async function main() {
     assert.equal(failedBlanked, 1, 'dynamic loader failures keep the QQ shell content blank');
     assert.equal(failedShell.toasts.length, 1, 'dynamic loader failures produce one safe toast');
 
+    for (const removedRoute of [
+        'table-update-review',
+        'table:sheet_demo',
+        'table-generic:sheet_demo',
+        'app:sheet_demo',
+        'theater:demo',
+        'fusion',
+        'variable-manager',
+    ]) {
+        assert.equal(
+            await __test__loadRouteRenderer(removedRoute, 406, routeDeps),
+            null,
+            `${removedRoute} must not remain a top-level phone route`,
+        );
+    }
+
     let resolveDelayedDependencies;
     let delayedLifecycleCreated = 0;
     const delayedRoute = await __test__loadRouteRenderer('qq', 405, {

@@ -1,10 +1,7 @@
 import {
     buildAppearancePageHtml,
-    buildBeautifyTemplatePageHtml,
     buildButtonStylePageHtml,
-    buildFullscreenOverlayPageHtml,
     buildSettingsHomePageHtml,
-    buildTableContentReplacementPageHtml,
 } from './page-builders.js';
 import {
     SETTINGS_ENTRY_META,
@@ -33,7 +30,4 @@ export {
     buildSettingsHomePageHtml,
     buildAppearancePageHtml,
     buildButtonStylePageHtml,
-    buildBeautifyTemplatePageHtml,
-    buildTableContentReplacementPageHtml,
-    buildFullscreenOverlayPageHtml,
 };

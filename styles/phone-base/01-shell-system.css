@@ -173,7 +173,7 @@
 }
 
 /* 右上角数量徽标（常驻总条目数） */
-.phone-table-count-badge {
+.phone-app-count-badge {
     position: absolute;
     top: -4px;
     right: -4px;

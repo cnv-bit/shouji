@@ -5,11 +5,8 @@ export function createSettingsAppState() {
         logsScrollTop: 0,
         apiPresetsScrollTop: 0,
         appearanceScrollTop: 0,
-        beautifyScrollTop: 0,
         buttonStyleScrollTop: 0,
         aiInstructionPresetsScrollTop: 0,
         imageGenerationScrollTop: 0,
-        tableContentReplacementScrollTop: 0,
-        fullscreenOverlayScrollTop: 0,
     };
 }
