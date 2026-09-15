@@ -122,24 +122,15 @@ async function testChatIntegrityKeepsScopeStableAcrossFileRename() {
     assert.equal(host.readScope().scopeId, 'st:character:character-a:chat-integrity-b');
 }
 
-async function testHostReadsStoryTimeFromThePhoneStatusData() {
+async function testHostStoryTimeNoLongerDependsOnDatabaseStatusData() {
     const { createQQV2HostAdapter } = await importModule('modules/qq-v2/host/adapter.js');
-    const statusData = { value: 'story-time-source' };
     const host = createQQV2HostAdapter({
         getContext: () => context(),
-        getTableData: () => statusData,
-        resolveStatusBarData: (rawData) => ({
-            currentTime: rawData.value === 'story-time-source' ? '2042-05-01 09:30' : '',
-        }),
+        getStoryTime: () => '2042-05-01 09:30',
     });
 
     assert.equal(host.readStoryTime(), '2042-05-01 09:30');
-
-    const unavailable = createQQV2HostAdapter({
-        getContext: () => context(),
-        getTableData: () => null,
-        resolveStatusBarData: () => ({}),
-    });
+    const unavailable = createQQV2HostAdapter({ getContext: () => context() });
     assert.equal(unavailable.readStoryTime(), '');
 }
 
@@ -491,8 +482,9 @@ async function testDefaultRuntimeExposesAndRecoversFromHostUnavailability() {
             groupId: 'group-recovered',
             characterId: '',
         });
-        const scope = await runtime.handleQQV2ChatChanged();
-        assert.equal(scope.scopeId, 'st:group:group-recovered:chat-recovered.jsonl');
+        const snapshot = await runtime.getQQV2Facade().query.bootstrap();
+        assert.equal(snapshot.context.scopeId, 'st:group:group-recovered:chat-recovered.jsonl',
+            '读取 QQ 快照时应从短暂的宿主不可用状态自行恢复');
         assert.equal(runtime.getQQV2RuntimeStatus().phase, 'ready');
         assert.equal(runtime.getQQV2RuntimeStatus().epoch, 2);
     } finally {
@@ -505,7 +497,7 @@ async function testDefaultRuntimeExposesAndRecoversFromHostUnavailability() {
 async function main() {
     await testHostFactsAlwaysFollowCurrentContext();
     await testChatIntegrityKeepsScopeStableAcrossFileRename();
-    await testHostReadsStoryTimeFromThePhoneStatusData();
+    await testHostStoryTimeNoLongerDependsOnDatabaseStatusData();
     await testHostListsCharacterChatFilesWithoutGuessingOnFailure();
     await testRuntimeLifecycleDoesNotRetainOldScope();
     await testRuntimeEntryDeliversCurrentHostLifecycleFacts();

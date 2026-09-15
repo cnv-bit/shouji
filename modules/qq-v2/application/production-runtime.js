@@ -1550,7 +1550,15 @@ export function createQQV2ProductionRuntime(options = {}) {
 
     let snapshotReadPromise = null;
     const readSnapshot = async () => {
-        const status = lifecycle.getStatus();
+        let status = lifecycle.getStatus();
+        if (status.phase === 'unavailable') {
+            try {
+                await lifecycle.handleChatChanged();
+            } catch (error) {
+                if (error?.code !== 'host_unavailable') throw error;
+            }
+            status = lifecycle.getStatus();
+        }
         if (status.phase === 'destroyed') {
             return { phase: 'destroyed', context: currentContext(host, null), globalSettings: defaultGlobalSettings() };
         }

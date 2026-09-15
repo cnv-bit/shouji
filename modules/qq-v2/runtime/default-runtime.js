@@ -108,6 +108,7 @@ export function createQQV2RuntimeEntry(options = {}) {
         },
         getStatus() {
             const status = runtime?.getStatus() || IDLE_STATUS;
+            if (status.phase !== 'unavailable') hostError = null;
             if (!hostError) return status;
             return Object.freeze({
                 ...status,
