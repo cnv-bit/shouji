@@ -166,6 +166,9 @@ export function createQQV2RequestService(options = {}) {
     const afterManualError = typeof options.afterManualError === 'function'
         ? options.afterManualError
         : async () => {};
+    const confirmManualPrompt = typeof options.confirmManualPrompt === 'function'
+        ? options.confirmManualPrompt
+        : async () => true;
     const runtimeSettingsResolver = typeof options.runtimeSettingsResolver === 'function'
         ? options.runtimeSettingsResolver
         : async (_scopeId, scope) => scope?.settings || {};
@@ -374,6 +377,17 @@ export function createQQV2RequestService(options = {}) {
             : stickerCatalog.references;
         const promptMessages = requestBuild.messages;
         if (!isCurrentEntry(entry)) return;
+        entry.diagnostic.stage = 'prompt-review';
+        const approved = await confirmManualPrompt({
+            model: apiPreset.model,
+            messages: promptMessages,
+            signal: entry.controller.signal,
+        });
+        if (!isCurrentEntry(entry)) return;
+        if (!approved) {
+            setState(key, { phase: 'idle', pendingUserMessageCount: pending.length, error: '' });
+            return;
+        }
         entry.diagnostic.stage = 'request';
         const response = await backend.generate({ preset: apiPreset, messages: promptMessages, signal: entry.controller.signal });
         Object.assign(entry.diagnostic, { response: response?.content ?? response, model: response?.model || apiPreset.model, finishReason: response?.finishReason, stage: 'protocol' });

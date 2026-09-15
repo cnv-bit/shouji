@@ -29,7 +29,7 @@ import { createQQV2SillyTavernWorldbookGateway } from '../worldbook/st-gateway.j
 import { createQQV2WorldbookProjectionService } from '../worldbook/projection-service.js';
 import { formatQQV2MessageSemantic } from '../domain/message-semantics.js';
 import { createHostChatDeletedFact, resolveDeletedQQV2Scope } from '../host/lifecycle.js';
-import { observeFinalPromptForViewer } from '../../integration/final-prompt-viewer-bridge.js';
+import { confirmFinalPromptForViewer, observeFinalPromptForViewer } from '../../integration/final-prompt-viewer-bridge.js';
 import { createWorldbookContextResolver } from '../../worldbook-reading/context-resolver.js';
 import { normalizeImageGenerationSettings } from '../../settings/schema.js';
 import { createImageGenerationOrchestrator } from '../../image-generation/orchestration.js';
@@ -1110,6 +1110,7 @@ export function createQQV2ProductionRuntime(options = {}) {
         repository,
         backend,
         captureScopeSession,
+        confirmManualPrompt: confirmFinalPromptForViewer,
         onProactiveError(error, context) {
             options.logger?.warn?.({
                 action: 'proactive.request.failed',

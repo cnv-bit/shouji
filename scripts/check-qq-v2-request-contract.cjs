@@ -230,8 +230,9 @@ async function testFinalPromptViewerBridgePostsOnlyThePromptSnapshot() {
 
 function testProductionRuntimeWiresThePromptObserver() {
     const source = fs.readFileSync(path.join(ROOT, 'modules/qq-v2/application/production-runtime.js'), 'utf8');
-    assert.match(source, /import \{ observeFinalPromptForViewer \} from '\.\.\/\.\.\/integration\/final-prompt-viewer-bridge\.js';/);
+    assert.match(source, /import \{ confirmFinalPromptForViewer, observeFinalPromptForViewer \} from '\.\.\/\.\.\/integration\/final-prompt-viewer-bridge\.js';/);
     assert.match(source, /onPromptReady:\s*observeFinalPromptForViewer/);
+    assert.match(source, /confirmManualPrompt:\s*confirmFinalPromptForViewer/);
 }
 
 function createRepositoryFixture(options = {}) {
@@ -441,6 +442,54 @@ async function testManualRequestPersistsUserMessageThenCommitsValidatedActions()
     assert.deepEqual(service.getConversationState(fixture.scopeId, fixture.conversationId), {
         phase: 'idle',
         pendingUserMessageCount: 0,
+        error: '',
+    });
+}
+
+async function testManualPromptCanBeReviewedAndCancelledBeforeBackendRequest() {
+    const { createQQV2RequestService } = await importModule('modules/qq-v2/request/service.js');
+    const fixture = createRepositoryFixture();
+    const reviews = [];
+    let backendCalls = 0;
+    const finalMessages = [
+        { role: 'system', content: 'final rules' },
+        { role: 'user', content: 'hello' },
+    ];
+    const service = createQQV2RequestService({
+        repository: fixture.repository,
+        apiPresetResolver: async () => ({ model: 'model-a' }),
+        promptPresetResolver: async () => ({ messages: [] }),
+        buildManualRequest: async () => finalMessages,
+        async confirmManualPrompt(input) {
+            reviews.push(input);
+            return false;
+        },
+        backend: {
+            async generate() {
+                backendCalls += 1;
+                return { content: '<qq><message /></qq>' };
+            },
+        },
+        parseResponse: () => [],
+        validateActions: (actions) => actions,
+    });
+
+    await service.sendManual({
+        scopeId: fixture.scopeId,
+        conversationId: fixture.conversationId,
+        message: { type: 'text', content: 'hello' },
+    });
+    await service.waitForIdle();
+
+    assert.equal(reviews.length, 1);
+    assert.equal(reviews[0].model, 'model-a');
+    assert.deepEqual(reviews[0].messages, finalMessages);
+    assert.equal(reviews[0].signal.aborted, false);
+    assert.equal(backendCalls, 0);
+    assert.equal(fixture.applied.length, 0);
+    assert.deepEqual(service.getConversationState(fixture.scopeId, fixture.conversationId), {
+        phase: 'idle',
+        pendingUserMessageCount: 1,
         error: '',
     });
 }
@@ -1403,6 +1452,7 @@ async function main() {
     await testFinalPromptViewerBridgePostsOnlyThePromptSnapshot();
     testProductionRuntimeWiresThePromptObserver();
     await testManualRequestPersistsUserMessageThenCommitsValidatedActions();
+    await testManualPromptCanBeReviewedAndCancelledBeforeBackendRequest();
     await testManualGroupRequestUsesTheGroupReplyPipeline();
     await testManualFallbackMapsStickerShortReferenceBeforeRepositoryCommit();
     await testModelLoadingUsesBackendAndClearsStaleCandidatesOnFailure();
