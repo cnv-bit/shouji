@@ -1,9 +1,4 @@
 import { createQQV2Facade } from './facade.js';
-import { getDB } from '../../phone-core/db-bridge.js';
-import {
-    createQQV2DatabaseCurrentApiPreset,
-    isQQV2DatabaseCurrentApiPresetId,
-} from '../database-current-api.js';
 import { createQQV2GlobalRuntimeSettings } from './global-runtime-settings.js';
 import { createQQV2Repository } from '../domain/repository.js';
 import { QQ_V2_BUILT_IN_PROMPT_PRESET_IDS } from '../domain/prompt-preset-ids.js';
@@ -20,10 +15,6 @@ import {
 import { buildQQV2StickerCatalog } from '../prompt/sticker-catalog.js';
 import { createQQV2RequestService } from '../request/service.js';
 import { createSillyTavernQQV2Backend } from '../request/backend-proxy.js';
-import {
-    createQQV2BackendRouter,
-    createQQV2DatabaseCurrentApiBackend,
-} from '../request/database-current-api-backend.js';
 import { createQQContactPackService } from '../resources/contact-pack.js';
 import { createQQImageLibraryPackService } from '../resources/image-library-pack.js';
 import { createQQDefaultImageLibraryInstaller } from '../resources/default-image-library.js';
@@ -400,9 +391,6 @@ export function createQQV2ProductionRuntime(options = {}) {
         stateStore,
         fetchImpl: options.fetchImpl || (typeof window === 'undefined' ? null : globalThis.fetch?.bind(globalThis)),
     });
-    const getDatabaseApi = typeof options.getDatabaseApi === 'function'
-        ? options.getDatabaseApi
-        : () => safeRead(getDB, null);
     const resources = options.resources || createQQV2ResourceService({
         storage: sharedStorage,
         readMedia: (key) => stateStore.readMedia(key),
@@ -413,19 +401,8 @@ export function createQQV2ProductionRuntime(options = {}) {
         logger: options.logger,
         onPromptReady: observeFinalPromptForViewer,
     });
-    const databaseBackend = createQQV2DatabaseCurrentApiBackend({
-        getDatabaseApi,
-        onPromptReady: observeFinalPromptForViewer,
-    });
-    const backend = createQQV2BackendRouter({
-        primaryBackend,
-        databaseBackend,
-    });
-    const resolveApiPreset = (presetId) => (
-        isQQV2DatabaseCurrentApiPresetId(presetId)
-            ? createQQV2DatabaseCurrentApiPreset()
-            : resources.getApiPresetForRequest(presetId)
-    );
+    const backend = primaryBackend;
+    const resolveApiPreset = presetId => resources.getApiPresetForRequest(presetId);
     const getImageGenerationConfig = typeof options.getImageGenerationConfig === 'function'
         ? options.getImageGenerationConfig
         : () => ({});
@@ -466,8 +443,6 @@ export function createQQV2ProductionRuntime(options = {}) {
                 ?? sillyTavernWorldbookReadingRuntimes.templateRuntime,
             mvuRuntime: options.mvuRuntime
                 ?? sillyTavernWorldbookReadingRuntimes.mvuRuntime,
-            shujukuRuntime: options.shujukuRuntime
-                ?? sillyTavernWorldbookReadingRuntimes.shujukuRuntime,
         });
     const resolveWorldbookContent = (request) => worldbookContextResolver.resolve(request);
     const resolveWorldbookSettings = async (scopeId, { scopeSession = null } = {}) => {
@@ -1641,12 +1616,7 @@ export function createQQV2ProductionRuntime(options = {}) {
                 listImageGenerationPresets(),
                 resources.listStickers(),
             ]);
-            const apiPresets = [...storedApiPresets];
-            const databaseApi = safeRead(getDatabaseApi, null);
-            if (typeof databaseApi?.callAI === 'function') {
-                apiPresets.push(createQQV2DatabaseCurrentApiPreset());
-            }
-            return { apiPresets, promptPresets, imageGenerationPresets, stickers };
+            return { apiPresets: storedApiPresets, promptPresets, imageGenerationPresets, stickers };
         },
         exportImageLibraryPack: () => imageLibraryPacks.exportPack(),
         async importImageLibraryPack({ source } = {}) {

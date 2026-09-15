@@ -1,7 +1,5 @@
 import { getFreshSillyTavernContext } from '../../integration/context-bridge.js';
 import { resolveHostIdentity } from '../../integration/chat-identity.js';
-import { getTableData } from '../../phone-core/data-api.js';
-import { resolveStatusBarData } from '../../phone-home/status-bar-data.js';
 import { canonicalCharacterChatFile } from './lifecycle.js';
 
 const MAX_TEXT_LENGTH = 1024;
@@ -83,23 +81,6 @@ function mapStoryMessage(message, index) {
     });
 }
 
-function createStoryTimeReader(options = {}) {
-    const readTableData = typeof options.getTableData === 'function'
-        ? options.getTableData
-        : getTableData;
-    const readStatusBarData = typeof options.resolveStatusBarData === 'function'
-        ? options.resolveStatusBarData
-        : resolveStatusBarData;
-
-    return () => {
-        try {
-            return asText(readStatusBarData(readTableData())?.currentTime, 512);
-        } catch {
-            return '';
-        }
-    };
-}
-
 /**
  * QQ v2 与 SillyTavern 的唯一宿主事实边界。
  * 所有读取均即时完成，绝不缓存上一段聊天的 context。
@@ -110,7 +91,7 @@ export function createQQV2HostAdapter(options = {}) {
         : getFreshSillyTavernContext;
     const getStoryTime = typeof options.getStoryTime === 'function'
         ? options.getStoryTime
-        : createStoryTimeReader(options);
+        : () => '';
     const fetchImpl = options.fetchImpl ?? globalThis.fetch;
 
     const readContext = () => {

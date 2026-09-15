@@ -375,7 +375,6 @@ async function testDefaultProductionRuntimesRenderPluginBackedWorldbookContent()
     const originalPlugins = {
         EjsTemplate: globalThis.EjsTemplate,
         Mvu: globalThis.Mvu,
-        AutoCardUpdaterAPI: globalThis.AutoCardUpdaterAPI,
     };
     let runtime = null;
 
@@ -396,14 +395,6 @@ async function testDefaultProductionRuntimesRenderPluginBackedWorldbookContent()
             return { stat_data: { stage: 2 } };
         },
     };
-    globalThis.AutoCardUpdaterAPI = {
-        async querySql(sql, params) {
-            assert.equal(sql, 'SELECT stock');
-            assert.deepEqual(params, []);
-            return { columns: ['stock'], values: [[9]] };
-        },
-    };
-
     try {
         runtime = createQQV2ProductionRuntime({
             host: {
@@ -453,7 +444,7 @@ async function testDefaultProductionRuntimesRenderPluginBackedWorldbookContent()
                             value: {
                                 uid: 21,
                                 constant: true,
-                                content: '@@if mvu.stage === 2\n<%= person %>库存{[sql "SELECT stock"]}',
+                                content: '@@if mvu.stage === 2\n<%= person %>库存正常',
                             },
                         }],
                     };
@@ -497,7 +488,7 @@ async function testDefaultProductionRuntimesRenderPluginBackedWorldbookContent()
         });
         await waitUntil(() => generatedPrompts.length === 1, 'the plugin-rendered worldbook prompt');
 
-        assert.equal(generatedPrompts[0][0].content, '林知夏库存9');
+        assert.equal(generatedPrompts[0][0].content, '林知夏库存正常');
     } finally {
         runtime?.destroy();
         for (const [name, value] of Object.entries(originalPlugins)) {

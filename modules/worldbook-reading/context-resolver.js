@@ -1,5 +1,3 @@
-import { renderShujukuTemplate } from './shujuku-template-renderer.js';
-
 function asArray(value) {
     return Array.isArray(value) ? value : [];
 }
@@ -379,7 +377,6 @@ export function createWorldbookContextResolver({
     readSelection,
     templateRuntime,
     mvuRuntime,
-    shujukuRuntime,
 }) {
     return Object.freeze({
         async resolve(request = {}) {
@@ -445,14 +442,7 @@ export function createWorldbookContextResolver({
             }
             if (ejsContents.length === 0) return '';
 
-            const shujukuSession = typeof shujukuRuntime === 'function'
-                ? await shujukuRuntime(request)
-                : shujukuRuntime;
-            const content = await renderShujukuTemplate(ejsContents.join('\n\n'), {
-                ...asObject(shujukuSession),
-                seedContent: scanText,
-            });
-            return String(content ?? '').trim();
+            return ejsContents.join('\n\n').trim();
         },
     });
 }

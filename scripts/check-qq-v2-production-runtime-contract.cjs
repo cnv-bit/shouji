@@ -3428,8 +3428,6 @@ async function main() {
     await testProductionRuntimeCancelsLateSaveAndCleansOldScopeThroughCurrentHostContext();
     await testDefaultRuntimeEntryExposesTheProductionFacade();
     await testProductionFacadeOwnsApiPresetLifecycleAcrossScopes();
-    await testProductionFacadeListsDatabaseCurrentApiAsReadOnlyVirtualPreset();
-    await testProductionRuntimeRoutesDatabaseCurrentApiThroughQQRequests();
     await testProductionRuntimeWorksWithoutWebCryptoAndKeepsKeysOutOfExports();
     await testProductionFacadeListsOnlyExistingWorldbooks();
     await testProductionRuntimeInitializesDefaultWorldbookOncePerScope();

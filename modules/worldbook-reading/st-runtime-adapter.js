@@ -26,35 +26,10 @@ function latestMessageId(request, getContext) {
     return hostMessages.length > 0 ? hostMessages.length - 1 : -1;
 }
 
-function messagePlotContent(message) {
-    const direct = typeof message?.qrf_plot === 'string' ? message.qrf_plot.trim() : '';
-    if (direct) return direct;
-    const tasks = message?.qrf_plot_tasks;
-    if (!tasks || typeof tasks !== 'object' || Array.isArray(tasks)) return '';
-    return Object.entries(tasks)
-        .map(([taskId, content]) => {
-            const text = typeof content === 'string' ? content.trim() : '';
-            return text ? `【${taskId}】\n${text}` : '';
-        })
-        .filter(Boolean)
-        .join('\n\n');
-}
-
-function latestPlotContent(getContext) {
-    const chat = getContext()?.chat;
-    if (!Array.isArray(chat)) return '';
-    for (let index = chat.length - 1; index >= 0; index -= 1) {
-        const content = messagePlotContent(chat[index]);
-        if (content) return content;
-    }
-    return '';
-}
-
 export function createSillyTavernWorldbookReadingRuntimes(overrides = {}) {
     const deps = {
         getEjsTemplate: () => globalValue('EjsTemplate'),
         getMvu: () => globalValue('Mvu'),
-        getAutoCardUpdaterApi: () => globalValue('AutoCardUpdaterAPI'),
         getContext: readContextFromHost,
         ...overrides,
     };
@@ -89,23 +64,7 @@ export function createSillyTavernWorldbookReadingRuntimes(overrides = {}) {
         },
     });
 
-    const shujukuRuntime = () => {
-        const api = deps.getAutoCardUpdaterApi();
-        const querySql = api?.querySql;
-        const exportTableAsJson = api?.exportTableAsJson;
-        const runtime = {
-            plotContent: latestPlotContent(deps.getContext),
-        };
-        if (typeof querySql === 'function') {
-            runtime.querySql = (sql, params) => Reflect.apply(querySql, api, [sql, params]);
-        }
-        if (typeof exportTableAsJson === 'function') {
-            runtime.exportTableAsJson = () => Reflect.apply(exportTableAsJson, api, []);
-        }
-        return runtime;
-    };
-
-    return Object.freeze({ templateRuntime, mvuRuntime, shujukuRuntime });
+    return Object.freeze({ templateRuntime, mvuRuntime });
 }
 
 export const sillyTavernWorldbookReadingRuntimes = createSillyTavernWorldbookReadingRuntimes();
