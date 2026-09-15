@@ -354,6 +354,17 @@ async function main() {
     assert.equal(initial.settings.groupProactivePresetId, 'group-proactive-a', 'read model exposes the group proactive preset');
     assert.equal(initial.settings.proactive.privateWeight, 50, 'private/group proactive selection defaults to 50/50');
 
+    const thrownRead = await loadQQSettingsModel({
+        query: { bootstrap: async () => { throw Object.assign(new Error('simulated snapshot failure'), { code: 'snapshot_failed' }); } },
+    });
+    assert.equal(thrownRead.error.code, 'snapshot_failed', 'settings read exposes the actual snapshot error code');
+    assert.equal(thrownRead.error.message, 'simulated snapshot failure', 'settings read exposes the actual snapshot error message');
+    const missingScope = await loadQQSettingsModel({
+        query: { bootstrap: async () => ({ ok: true, status: 'transitioning', context: {} }) },
+    });
+    assert.equal(missingScope.error.code, 'scope-required', 'settings read distinguishes a missing chat scope');
+    assert.match(missingScope.error.message, /transitioning/, 'missing-scope diagnostics include the QQ runtime phase');
+
     const uiSource = fs.readFileSync(path.join(process.cwd(), 'modules/qq-v2/ui/app.js'), 'utf8');
     assert.match(uiSource, /const settingTimeWindow =/, 'time range controls share one UI field');
     assert.match(uiSource, /settingTimeWindow\(timeWindow\)/, 'worldbook settings render the merged time range field');

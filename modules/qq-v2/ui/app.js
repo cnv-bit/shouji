@@ -267,10 +267,34 @@ function createSettingsSaveQueue() {
 }
 
 async function loadQQSettingsModel(facade) {
-    const result = await facade?.query?.bootstrap?.();
+    let result;
+    try {
+        result = await facade?.query?.bootstrap?.();
+    } catch (error) {
+        return Object.freeze({
+            ok: false,
+            status: 'failed',
+            reason: 'settings-bootstrap-failed',
+            error: Object.freeze({
+                code: asText(error?.code) || 'settings-bootstrap-failed',
+                message: asText(error?.message) || 'QQ 设置快照读取失败',
+            }),
+        });
+    }
     if (!result?.ok) return result || Object.freeze({ ok: false, status: 'unavailable' });
     const scopeId = asText(result.context?.scopeId);
-    if (!scopeId) return Object.freeze({ ok: false, status: 'unavailable', reason: 'scope-required' });
+    if (!scopeId) {
+        const phase = asText(result.status) || 'unknown';
+        return Object.freeze({
+            ok: false,
+            status: 'unavailable',
+            reason: 'scope-required',
+            error: Object.freeze({
+                code: 'scope-required',
+                message: `当前聊天作用域不可用（QQ 运行状态：${phase}）`,
+            }),
+        });
+    }
     return Object.freeze({
         ok: true,
         status: asText(result.status) || 'ready',
