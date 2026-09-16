@@ -22,6 +22,12 @@ const GLOBAL_RUNTIME_DEFAULTS = Object.freeze({
     sendButtonEnabled: false,
     hostContextTurns: 3,
     conversationHistoryLimit: 100,
+    privateConversationHistoryLimit: 100,
+    groupConversationHistoryLimit: 100,
+    groupPrivateMemoryHistoryLimit: 100,
+    privateWorldbookScanLimit: 3,
+    groupWorldbookScanLimit: 3,
+    hostWorldbookScanLimit: 2,
     hostContextExtractTag: 'content',
     hostContextExcludeTags: Object.freeze([]),
     proactive: Object.freeze({ enabled: false, everyTurns: 5, privateWeight: 50 }),
@@ -85,6 +91,10 @@ function normalizeSettings(value) {
     const source = asObject(value);
     const proactive = asObject(source.proactive);
     const worldbook = asObject(source.worldbook);
+    const legacyHistoryLimit = normalizeNonNegativeInteger(
+        source.conversationHistoryLimit,
+        GLOBAL_RUNTIME_DEFAULTS.conversationHistoryLimit,
+    );
     return {
         sendButtonEnabled: source.sendButtonEnabled === true,
         activeApiPresetId: asText(source.activeApiPresetId, 256),
@@ -101,9 +111,30 @@ function normalizeSettings(value) {
             source.hostContextTurns,
             GLOBAL_RUNTIME_DEFAULTS.hostContextTurns,
         ),
-        conversationHistoryLimit: normalizeNonNegativeInteger(
-            source.conversationHistoryLimit,
-            GLOBAL_RUNTIME_DEFAULTS.conversationHistoryLimit,
+        conversationHistoryLimit: legacyHistoryLimit,
+        privateConversationHistoryLimit: normalizeNonNegativeInteger(
+            source.privateConversationHistoryLimit,
+            legacyHistoryLimit,
+        ),
+        groupConversationHistoryLimit: normalizeNonNegativeInteger(
+            source.groupConversationHistoryLimit,
+            legacyHistoryLimit,
+        ),
+        groupPrivateMemoryHistoryLimit: normalizeNonNegativeInteger(
+            source.groupPrivateMemoryHistoryLimit,
+            legacyHistoryLimit,
+        ),
+        privateWorldbookScanLimit: normalizeNonNegativeInteger(
+            source.privateWorldbookScanLimit,
+            GLOBAL_RUNTIME_DEFAULTS.privateWorldbookScanLimit,
+        ),
+        groupWorldbookScanLimit: normalizeNonNegativeInteger(
+            source.groupWorldbookScanLimit,
+            GLOBAL_RUNTIME_DEFAULTS.groupWorldbookScanLimit,
+        ),
+        hostWorldbookScanLimit: normalizeNonNegativeInteger(
+            source.hostWorldbookScanLimit,
+            GLOBAL_RUNTIME_DEFAULTS.hostWorldbookScanLimit,
         ),
         hostContextExtractTag: Object.hasOwn(source, 'hostContextExtractTag')
             && source.hostContextExtractTag !== undefined
@@ -173,6 +204,24 @@ function backfillSharedSettings(current, legacy) {
         conversationHistoryLimit: Object.hasOwn(source, 'conversationHistoryLimit')
             ? source.conversationHistoryLimit
             : fallback.conversationHistoryLimit,
+        privateConversationHistoryLimit: Object.hasOwn(source, 'privateConversationHistoryLimit')
+            ? source.privateConversationHistoryLimit
+            : fallback.privateConversationHistoryLimit,
+        groupConversationHistoryLimit: Object.hasOwn(source, 'groupConversationHistoryLimit')
+            ? source.groupConversationHistoryLimit
+            : fallback.groupConversationHistoryLimit,
+        groupPrivateMemoryHistoryLimit: Object.hasOwn(source, 'groupPrivateMemoryHistoryLimit')
+            ? source.groupPrivateMemoryHistoryLimit
+            : fallback.groupPrivateMemoryHistoryLimit,
+        privateWorldbookScanLimit: Object.hasOwn(source, 'privateWorldbookScanLimit')
+            ? source.privateWorldbookScanLimit
+            : fallback.privateWorldbookScanLimit,
+        groupWorldbookScanLimit: Object.hasOwn(source, 'groupWorldbookScanLimit')
+            ? source.groupWorldbookScanLimit
+            : fallback.groupWorldbookScanLimit,
+        hostWorldbookScanLimit: Object.hasOwn(source, 'hostWorldbookScanLimit')
+            ? source.hostWorldbookScanLimit
+            : fallback.hostWorldbookScanLimit,
         hostContextExtractTag: Object.hasOwn(source, 'hostContextExtractTag')
             ? source.hostContextExtractTag
             : fallback.hostContextExtractTag,
@@ -246,11 +295,25 @@ function applyPatch(current, patch) {
     for (const key of ['assistantReplyPresetId', 'privateReplyPresetId', 'privateProactivePresetId', 'groupReplyPresetId', 'groupProactivePresetId']) {
         if (Object.hasOwn(source, key)) next[key] = asText(source[key], 256) || GLOBAL_PRESET_DEFAULTS[key];
     }
-    for (const key of ['hostContextTurns', 'conversationHistoryLimit']) {
+    for (const key of [
+        'hostContextTurns',
+        'conversationHistoryLimit',
+        'privateConversationHistoryLimit',
+        'groupConversationHistoryLimit',
+        'groupPrivateMemoryHistoryLimit',
+        'privateWorldbookScanLimit',
+        'groupWorldbookScanLimit',
+        'hostWorldbookScanLimit',
+    ]) {
         if (!Object.hasOwn(source, key)) continue;
         const number = Number(source[key]);
         if (!Number.isInteger(number) || number < 0) throw new RangeError(`${key} must be a non-negative integer`);
         next[key] = number;
+    }
+    if (Object.hasOwn(source, 'conversationHistoryLimit')) {
+        for (const key of ['privateConversationHistoryLimit', 'groupConversationHistoryLimit', 'groupPrivateMemoryHistoryLimit']) {
+            if (!Object.hasOwn(source, key)) next[key] = next.conversationHistoryLimit;
+        }
     }
     if (Object.hasOwn(source, 'hostContextExtractTag')) {
         const rawTag = asText(source.hostContextExtractTag);

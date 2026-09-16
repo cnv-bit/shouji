@@ -133,6 +133,12 @@ function defaultGlobalSettings() {
         groupProactivePresetId: QQ_V2_BUILT_IN_PROMPT_PRESET_IDS.groupProactive,
         hostContextTurns: 3,
         conversationHistoryLimit: 100,
+        privateConversationHistoryLimit: 100,
+        groupConversationHistoryLimit: 100,
+        groupPrivateMemoryHistoryLimit: 100,
+        privateWorldbookScanLimit: 3,
+        groupWorldbookScanLimit: 3,
+        hostWorldbookScanLimit: 2,
         hostContextExtractTag: 'content',
         hostContextExcludeTags: [],
         worldbook: {
@@ -151,6 +157,9 @@ function defaultGlobalSettings() {
 function cloneGlobalSettings(settings) {
     const source = settings && typeof settings === 'object' ? settings : {};
     const defaults = defaultGlobalSettings();
+    const legacyHistoryLimit = Number.isInteger(Number(source.conversationHistoryLimit))
+        ? Number(source.conversationHistoryLimit)
+        : defaults.conversationHistoryLimit;
     return {
         ...defaults,
         sendButtonEnabled: source.sendButtonEnabled === true,
@@ -167,9 +176,25 @@ function cloneGlobalSettings(settings) {
         hostContextTurns: Number.isInteger(Number(source.hostContextTurns))
             ? Number(source.hostContextTurns)
             : defaults.hostContextTurns,
-        conversationHistoryLimit: Number.isInteger(Number(source.conversationHistoryLimit))
-            ? Number(source.conversationHistoryLimit)
-            : defaults.conversationHistoryLimit,
+        conversationHistoryLimit: legacyHistoryLimit,
+        privateConversationHistoryLimit: Number.isInteger(Number(source.privateConversationHistoryLimit))
+            ? Number(source.privateConversationHistoryLimit)
+            : legacyHistoryLimit,
+        groupConversationHistoryLimit: Number.isInteger(Number(source.groupConversationHistoryLimit))
+            ? Number(source.groupConversationHistoryLimit)
+            : legacyHistoryLimit,
+        groupPrivateMemoryHistoryLimit: Number.isInteger(Number(source.groupPrivateMemoryHistoryLimit))
+            ? Number(source.groupPrivateMemoryHistoryLimit)
+            : legacyHistoryLimit,
+        privateWorldbookScanLimit: Number.isInteger(Number(source.privateWorldbookScanLimit))
+            ? Number(source.privateWorldbookScanLimit)
+            : defaults.privateWorldbookScanLimit,
+        groupWorldbookScanLimit: Number.isInteger(Number(source.groupWorldbookScanLimit))
+            ? Number(source.groupWorldbookScanLimit)
+            : defaults.groupWorldbookScanLimit,
+        hostWorldbookScanLimit: Number.isInteger(Number(source.hostWorldbookScanLimit))
+            ? Number(source.hostWorldbookScanLimit)
+            : defaults.hostWorldbookScanLimit,
         hostContextExtractTag: Object.hasOwn(source, 'hostContextExtractTag')
             ? (asText(source.hostContextExtractTag)
                 ? normalizeQQV2TagName(source.hostContextExtractTag) || defaults.hostContextExtractTag
@@ -209,8 +234,16 @@ function runtimeSettingsPatch(settings) {
     if (hasOwn(source, 'hostContextTurns')) {
         patch.hostContextTurns = nonNegativeInteger(source.hostContextTurns, 'hostContextTurns');
     }
-    if (hasOwn(source, 'conversationHistoryLimit')) {
-        patch.conversationHistoryLimit = nonNegativeInteger(source.conversationHistoryLimit, 'conversationHistoryLimit');
+    for (const key of [
+        'conversationHistoryLimit',
+        'privateConversationHistoryLimit',
+        'groupConversationHistoryLimit',
+        'groupPrivateMemoryHistoryLimit',
+        'privateWorldbookScanLimit',
+        'groupWorldbookScanLimit',
+        'hostWorldbookScanLimit',
+    ]) {
+        if (hasOwn(source, key)) patch[key] = nonNegativeInteger(source[key], key);
     }
     if (hasOwn(source, 'hostContextExtractTag')) {
         patch.hostContextExtractTag = asText(source.hostContextExtractTag, 128);
@@ -955,7 +988,12 @@ export function createQQV2ProductionRuntime(options = {}) {
     const resolvePromptContext = async ({ scopeId, scopeSession, conversation, history, scope, runtimeSettings = null }) => {
         const settings = runtimeSettings || await resolveRuntimeSettings(scopeId, scope, { scopeSession });
         const facts = await resolveConversationFacts(repository, scopeId, conversation);
-        const visibleHistory = truncateConversationHistory(history, settings.conversationHistoryLimit);
+        const visibleHistory = truncateConversationHistory(
+            history,
+            conversation.kind === 'group'
+                ? settings.groupConversationHistoryLimit
+                : settings.privateConversationHistoryLimit,
+        );
         const { personReferences, referenceByPersonId } = createPersonReferences(facts.people);
         const { messageReferences, visibleMessageRefs } = createMessageReferences(visibleHistory);
         const storyMessages = safeRead(() => host.readStoryMessages(), []);
@@ -968,20 +1006,24 @@ export function createQQV2ProductionRuntime(options = {}) {
             conversations: [{
                 messages: formatWorldbookHistory(history, facts.peopleById),
             }],
+            hostMessageLimit: settings.hostWorldbookScanLimit,
+            conversationMessageLimit: conversation.kind === 'group'
+                ? settings.groupWorldbookScanLimit
+                : settings.privateWorldbookScanLimit,
         });
         const stickers = await listStickers();
         const stickerCatalog = buildQQV2StickerCatalog(stickers);
         const groupMemory = !conversation.assistantCharacterId && conversation.kind === 'private'
             ? await resolveGroupMemory({
                 scopeId,
-                historyLimit: settings.conversationHistoryLimit,
+                historyLimit: settings.groupConversationHistoryLimit,
                 knownByPersonId: new Map(facts.people.map((person) => [person.personId, person.formalName])),
             })
             : '无';
         const privateMemory = conversation.kind === 'group'
             ? await resolvePrivateMemory({
                 scopeId,
-                historyLimit: settings.conversationHistoryLimit,
+                historyLimit: settings.groupPrivateMemoryHistoryLimit,
                 personIds: new Set(asArray(facts.group?.memberIds)),
             })
             : '无';
@@ -1206,11 +1248,15 @@ export function createQQV2ProductionRuntime(options = {}) {
                 hostMessages: storyMessages,
                 people,
                 conversations: worldbookConversations,
+                hostMessageLimit: runtimeSettings.hostWorldbookScanLimit,
+                conversationMessageLimit: kind === 'group'
+                    ? runtimeSettings.groupWorldbookScanLimit
+                    : runtimeSettings.privateWorldbookScanLimit,
             });
             const proactiveGroupMemory = kind === 'private'
                 ? await resolveGroupMemory({
                     scopeId,
-                    historyLimit: runtimeSettings.conversationHistoryLimit,
+                    historyLimit: runtimeSettings.groupConversationHistoryLimit,
                     knownByPersonId: new Map(candidates.map((candidate) => [
                         candidate.personId,
                         candidate.referenceId,
@@ -1220,7 +1266,7 @@ export function createQQV2ProductionRuntime(options = {}) {
             const proactivePrivateMemory = kind === 'group'
                 ? await resolvePrivateMemory({
                     scopeId,
-                    historyLimit: runtimeSettings.conversationHistoryLimit,
+                    historyLimit: runtimeSettings.groupPrivateMemoryHistoryLimit,
                     personIds: new Set(candidates.flatMap((candidate) => asArray(candidate.memberIds))),
                 })
                 : '无';
@@ -2103,6 +2149,12 @@ export function createQQV2ProductionRuntime(options = {}) {
                 'groupProactivePresetId',
                 'hostContextTurns',
                 'conversationHistoryLimit',
+                'privateConversationHistoryLimit',
+                'groupConversationHistoryLimit',
+                'groupPrivateMemoryHistoryLimit',
+                'privateWorldbookScanLimit',
+                'groupWorldbookScanLimit',
+                'hostWorldbookScanLimit',
                 'hostContextExtractTag',
                 'hostContextExcludeTags',
             ]) {

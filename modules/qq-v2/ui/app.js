@@ -88,6 +88,14 @@ const QQ_SETTINGS_GROUPS = Object.freeze([
     Object.freeze({ kind: 'worldbook', title: '\u4e16\u754c\u4e66\u6ce8\u5165' }),
     Object.freeze({ kind: 'image-library', title: '\u56fe\u7247\u8d44\u6599' }),
 ]);
+const QQ_CONTEXT_LIMIT_FIELDS = Object.freeze([
+    'privateConversationHistoryLimit',
+    'groupConversationHistoryLimit',
+    'groupPrivateMemoryHistoryLimit',
+    'privateWorldbookScanLimit',
+    'groupWorldbookScanLimit',
+    'hostWorldbookScanLimit',
+]);
 const QQ_WORLDBOOK_TIME_UNITS = new Set(['hour', 'day', 'month', 'year']);
 
 function asText(value) {
@@ -123,6 +131,7 @@ function cloneQQSettingsForUi(settings) {
     const worldbook = asObject(source.worldbook);
     const timeWindow = asObject(worldbook.timeWindow);
     const hasExtractTag = Object.hasOwn(source, 'hostContextExtractTag');
+    const legacyHistoryLimit = asInteger(source.conversationHistoryLimit, 100);
     return Object.freeze({
         sendButtonEnabled: source.sendButtonEnabled === true,
         activeApiPresetId: asText(source.activeApiPresetId),
@@ -132,7 +141,13 @@ function cloneQQSettingsForUi(settings) {
         groupReplyPresetId: asText(source.groupReplyPresetId),
         groupProactivePresetId: asText(source.groupProactivePresetId),
         hostContextTurns: asInteger(source.hostContextTurns),
-        conversationHistoryLimit: asInteger(source.conversationHistoryLimit),
+        conversationHistoryLimit: legacyHistoryLimit,
+        privateConversationHistoryLimit: asInteger(source.privateConversationHistoryLimit, legacyHistoryLimit),
+        groupConversationHistoryLimit: asInteger(source.groupConversationHistoryLimit, legacyHistoryLimit),
+        groupPrivateMemoryHistoryLimit: asInteger(source.groupPrivateMemoryHistoryLimit, legacyHistoryLimit),
+        privateWorldbookScanLimit: asInteger(source.privateWorldbookScanLimit, 3),
+        groupWorldbookScanLimit: asInteger(source.groupWorldbookScanLimit, 3),
+        hostWorldbookScanLimit: asInteger(source.hostWorldbookScanLimit, 2),
         hostContextExtractTag: hasExtractTag
             ? (asText(source.hostContextExtractTag)
                 ? normalizeQQV2TagName(source.hostContextExtractTag) || 'content'
@@ -201,15 +216,15 @@ function qqSettingsPatch(kind, values = {}, field = '') {
         if (field === 'hostContextExcludeTags') {
             return { hostContextExcludeTags: asArray(source.hostContextExcludeTags) };
         }
-        if (field === 'conversationHistoryLimit') {
-            return { conversationHistoryLimit: asInteger(source.conversationHistoryLimit) };
+        if (QQ_CONTEXT_LIMIT_FIELDS.includes(field)) {
+            return { [field]: asInteger(source[field]) };
         }
         if (field) return null;
         return {
             hostContextTurns: asInteger(source.hostContextTurns),
             hostContextExtractTag: asText(source.hostContextExtractTag),
             hostContextExcludeTags: asArray(source.hostContextExcludeTags),
-            conversationHistoryLimit: asInteger(source.conversationHistoryLimit),
+            ...Object.fromEntries(QQ_CONTEXT_LIMIT_FIELDS.map((key) => [key, asInteger(source[key])])),
         };
     }
     if (kind === 'proactive') {
@@ -3548,14 +3563,25 @@ export function createQQApp({
                 settings.hostContextExcludeTags.join('\u3001'),
                 'text',
             );
-            const privateHistory = settingField('聊天历史条数', 'conversationHistoryLimit', settings.conversationHistoryLimit, 'number');
+            const limitFields = [
+                settingField('当前私聊发给模型的历史条数', 'privateConversationHistoryLimit', settings.privateConversationHistoryLimit, 'number'),
+                settingField('当前群聊发给模型的历史条数', 'groupConversationHistoryLimit', settings.groupConversationHistoryLimit, 'number'),
+                settingField('群聊成员私聊记忆条数（每人）', 'groupPrivateMemoryHistoryLimit', settings.groupPrivateMemoryHistoryLimit, 'number'),
+                settingField('私聊触发世界书的 QQ 记录条数', 'privateWorldbookScanLimit', settings.privateWorldbookScanLimit, 'number'),
+                settingField('群聊触发世界书的 QQ 记录条数', 'groupWorldbookScanLimit', settings.groupWorldbookScanLimit, 'number'),
+                settingField('触发世界书的酒馆正文条数', 'hostWorldbookScanLimit', settings.hostWorldbookScanLimit, 'number'),
+            ];
             hostContext.querySelector('input')?.setAttribute('min', '0');
-            privateHistory.querySelector('input')?.setAttribute('min', '0');
+            limitFields.forEach((item) => {
+                const input = item.querySelector('input');
+                input?.setAttribute('min', '0');
+                input?.setAttribute('title', '0 表示使用全部记录');
+            });
             extractTag.querySelector('input')?.setAttribute('placeholder', 'content');
             extractTag.querySelector('input')?.setAttribute('title', '\u8f93\u5165\u6807\u7b7e\u540d\u3001\u4e0d\u9700\u8981\u5c16\u62ec\u53f7');
             excludeTags.querySelector('input')?.setAttribute('placeholder', '\u4f8b\u5982\uff1astatus\u3001table');
             excludeTags.querySelector('input')?.setAttribute('title', '\u591a\u4e2a\u6807\u7b7e\u53ef\u7528\u987f\u53f7\u3001\u9017\u53f7\u6216\u7a7a\u683c\u5206\u9694\u3001\u4e0d\u9700\u8981\u5c16\u62ec\u53f7');
-            form.append(hostContext, extractTag, excludeTags, privateHistory);
+            form.append(hostContext, extractTag, excludeTags, ...limitFields);
         } else if (kind === 'worldbook') {
             const timeWindow = settings.worldbook.timeWindow;
             const worldbookOptions = [['', '\u672a\u9009\u62e9']].concat(asArray(worldbooksResult?.worldbooks).map((worldbook) => [
@@ -4850,6 +4876,7 @@ export function createQQApp({
             keywords: value('keywords'),
             hostContextExtractTag: value('hostContextExtractTag'),
             hostContextExcludeTags: value('hostContextExcludeTags'),
+            ...Object.fromEntries(QQ_CONTEXT_LIMIT_FIELDS.map((key) => [key, value(key)])),
         };
         if (kind === 'reply') {
             if (field === 'everyTurns') {
@@ -4886,12 +4913,11 @@ export function createQQApp({
             }
             values.hostContextExtractTag = extractTag;
             values.hostContextExcludeTags = [...excludedTags.tags];
-            if (!field || field === 'conversationHistoryLimit') {
-                const conversationHistoryLimit = nonNegativeInteger('conversationHistoryLimit');
-                if (conversationHistoryLimit === null) {
-                    return reject('\u4e0a\u4e0b\u6587\u6761\u6570\u5fc5\u987b\u662f 0 \u6216\u66f4\u5927\u7684\u6574\u6570');
-                }
-                values.conversationHistoryLimit = conversationHistoryLimit;
+            for (const key of QQ_CONTEXT_LIMIT_FIELDS) {
+                if (field && field !== key) continue;
+                const limit = nonNegativeInteger(key);
+                if (limit === null) return reject('历史与世界书条数必须是 0 或更大的整数');
+                values[key] = limit;
             }
         }
         if (kind === 'worldbook') {

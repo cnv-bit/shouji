@@ -106,8 +106,15 @@ function main() {
     );
     requireContract(
         /hostContextTurns[\s\S]{0,220}'number'/.test(settingsDetail)
-            && /conversationHistoryLimit[\s\S]{0,220}'number'/.test(settingsDetail),
-        'context settings must expose two numeric controls for host context turns and private history turns',
+            && [
+                'privateConversationHistoryLimit',
+                'groupConversationHistoryLimit',
+                'groupPrivateMemoryHistoryLimit',
+                'privateWorldbookScanLimit',
+                'groupWorldbookScanLimit',
+                'hostWorldbookScanLimit',
+            ].every((name) => new RegExp(`${name}[\\s\\S]{0,220}'number'`).test(settingsDetail)),
+        'context settings must expose distinct numeric controls for prompt history and worldbook scanning',
     );
     requireContract(
         /settings\.worldbook\.light/.test(settingsDetail)

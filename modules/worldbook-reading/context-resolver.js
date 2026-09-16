@@ -169,10 +169,14 @@ function isEligibleHostMessage(message) {
     return true;
 }
 
-function latestHostMessageTexts(messages) {
-    return asArray(messages)
-        .filter(isEligibleHostMessage)
-        .slice(-2)
+function latestItems(items, limit, fallback) {
+    const count = Number(limit);
+    const normalized = Number.isInteger(count) && count >= 0 ? count : fallback;
+    return normalized > 0 ? items.slice(-normalized) : items;
+}
+
+function latestHostMessageTexts(messages, limit = 2) {
+    return latestItems(asArray(messages).filter(isEligibleHostMessage), limit, 2)
         .map(hostMessageText);
 }
 
@@ -188,11 +192,12 @@ function isVisibleConversationMessage(message) {
     return conversationMessageText(message).length > 0;
 }
 
-function latestConversationMessageTexts(conversations) {
-    return asArray(conversations).flatMap((conversation) => asArray(conversation?.messages)
-        .filter(isVisibleConversationMessage)
-        .slice(-3)
-        .map(conversationMessageText));
+function latestConversationMessageTexts(conversations, limit = 3) {
+    return asArray(conversations).flatMap((conversation) => latestItems(
+        asArray(conversation?.messages).filter(isVisibleConversationMessage),
+        limit,
+        3,
+    ).map(conversationMessageText));
 }
 
 async function loadCandidateEntries({ catalog, loadWorldbooks, readSelection, request }) {
@@ -399,9 +404,9 @@ export function createWorldbookContextResolver({
             );
             const candidates = templateSession.candidates;
             const scanText = [
-                ...latestHostMessageTexts(request.hostMessages),
+                ...latestHostMessageTexts(request.hostMessages, request.hostMessageLimit),
                 ...asArray(request.people),
-                ...latestConversationMessageTexts(request.conversations),
+                ...latestConversationMessageTexts(request.conversations, request.conversationMessageLimit),
             ].join('\n');
             const activated = new Set();
             const activatedKeys = new Set();

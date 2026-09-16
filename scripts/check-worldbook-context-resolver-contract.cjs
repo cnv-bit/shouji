@@ -235,6 +235,40 @@ async function testEachConversationContributesItsLatestThreeMessages() {
     assert.equal(content, '当前历史设定\n\n另一会话设定');
 }
 
+async function testConfiguredHostAndQQScanLimitsChangeActivation() {
+    const { createWorldbookContextResolver } = await importModule(
+        'modules/worldbook-reading/context-resolver.js',
+    );
+    const resolver = createWorldbookContextResolver({
+        async loadWorldbooks() {
+            return [{
+                name: '角色主书',
+                entries: [
+                    { uid: 1, content: '旧正文设定', key: ['旧正文暗号'] },
+                    { uid: 2, content: '旧 QQ 设定', key: ['旧QQ暗号'] },
+                ],
+            }];
+        },
+        async readSelection() { return {}; },
+    });
+    const request = {
+        hostMessages: [{ content: '旧正文暗号' }, { content: '最新正文' }],
+        conversations: [{ messages: [{ content: '旧QQ暗号' }, { content: '最新QQ消息' }] }],
+        people: [],
+    };
+
+    assert.equal(await resolver.resolve({
+        ...request,
+        hostMessageLimit: 1,
+        conversationMessageLimit: 1,
+    }), '');
+    assert.equal(await resolver.resolve({
+        ...request,
+        hostMessageLimit: 2,
+        conversationMessageLimit: 2,
+    }), '旧正文设定\n\n旧 QQ 设定');
+}
+
 async function testQQWorldbookProjectionIsNotReadBackIntoPrompt() {
     const { createWorldbookContextResolver } = await importModule(
         'modules/worldbook-reading/context-resolver.js',
@@ -936,6 +970,7 @@ async function main() {
     await testTavernHelperWorldbookShapeActivatesConstantAndSelectiveEntries();
     await testOnlyLatestTwoEligibleHostMessagesAreScanned();
     await testEachConversationContributesItsLatestThreeMessages();
+    await testConfiguredHostAndQQScanLimitsChangeActivation();
     await testQQWorldbookProjectionIsNotReadBackIntoPrompt();
     await testResolverConsumesCatalogSelectionPolicy();
     await testAllFourSelectiveKeywordModes();

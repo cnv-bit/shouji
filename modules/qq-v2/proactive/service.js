@@ -311,10 +311,13 @@ export function createQQV2ProactiveService(options = {}) {
         }
         const commitActions = resolveCommitActions();
         if (!commitActions) throw new QQV2ProactiveError('QQ 主动周期缺少动作提交入口', 'dependency_missing');
+        const historyLimit = kind === 'group'
+            ? runtimeSettings.groupConversationHistoryLimit ?? runtimeSettings.conversationHistoryLimit
+            : runtimeSettings.privateConversationHistoryLimit ?? runtimeSettings.conversationHistoryLimit;
         const [apiPreset, promptPreset, candidateData, stickers] = await Promise.all([
             apiPresetResolver(apiPresetId),
             promptPresetResolver(promptPresetId),
-            resolveCandidates(scopeId, kind, runtimeSettings.conversationHistoryLimit, runtimeSettings.sendButtonEnabled),
+            resolveCandidates(scopeId, kind, historyLimit, runtimeSettings.sendButtonEnabled),
             listStickers(),
         ]);
         if (!apiPreset || !promptPreset) {
@@ -444,7 +447,7 @@ export function createQQV2ProactiveService(options = {}) {
             const nextCandidateData = await resolveCandidates(
                 scopeId,
                 kind,
-                runtimeSettings.conversationHistoryLimit,
+                historyLimit,
                 runtimeSettings.sendButtonEnabled,
             );
             if (!current()) return { status: 'cancelled' };

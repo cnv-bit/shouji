@@ -73,6 +73,12 @@ async function testGlobalRuntimeStorage() {
         assistantReplyPresetId: 'builtin-assistant-reply',
         hostContextTurns: 0,
         conversationHistoryLimit: 0,
+        privateConversationHistoryLimit: 0,
+        groupConversationHistoryLimit: 0,
+        groupPrivateMemoryHistoryLimit: 0,
+        privateWorldbookScanLimit: 3,
+        groupWorldbookScanLimit: 3,
+        hostWorldbookScanLimit: 2,
         hostContextExtractTag: 'content',
         hostContextExcludeTags: [],
         worldbook: {
@@ -99,6 +105,12 @@ async function testGlobalRuntimeStorage() {
         groupProactivePresetId: 'group-proactive-global',
         hostContextTurns: 7,
         conversationHistoryLimit: 21,
+        privateConversationHistoryLimit: 11,
+        groupConversationHistoryLimit: 22,
+        groupPrivateMemoryHistoryLimit: 33,
+        privateWorldbookScanLimit: 4,
+        groupWorldbookScanLimit: 5,
+        hostWorldbookScanLimit: 6,
         worldbook: {
             enabled: false,
             bookName: 'must-stay-in-scope',
@@ -114,6 +126,14 @@ async function testGlobalRuntimeStorage() {
     assert.equal(scopeASettings.activeApiPresetId, 'api-global');
     assert.equal(scopeASettings.hostContextTurns, 7);
     assert.equal(scopeASettings.conversationHistoryLimit, 21);
+    assert.deepEqual([
+        scopeASettings.privateConversationHistoryLimit,
+        scopeASettings.groupConversationHistoryLimit,
+        scopeASettings.groupPrivateMemoryHistoryLimit,
+        scopeASettings.privateWorldbookScanLimit,
+        scopeASettings.groupWorldbookScanLimit,
+        scopeASettings.hostWorldbookScanLimit,
+    ], [11, 22, 33, 4, 5, 6]);
     assert.deepEqual(scopeASettings.worldbook, {
         enabled: false,
         timeWindow: { mode: 'all' },
@@ -192,6 +212,12 @@ async function testExistingSharedRuntimeMigration() {
         assistantReplyPresetId: 'builtin-assistant-reply',
         hostContextTurns: 0,
         conversationHistoryLimit: 0,
+        privateConversationHistoryLimit: 0,
+        groupConversationHistoryLimit: 0,
+        groupPrivateMemoryHistoryLimit: 0,
+        privateWorldbookScanLimit: 3,
+        groupWorldbookScanLimit: 3,
+        hostWorldbookScanLimit: 2,
         hostContextExtractTag: 'content',
         hostContextExcludeTags: [],
         worldbook: {

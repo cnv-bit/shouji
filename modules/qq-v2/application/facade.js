@@ -61,6 +61,9 @@ function isGroupMuteActive(until, storyTime) {
 
 function cloneGlobalSettings(settings) {
     const source = asObject(settings);
+    const legacyHistoryLimit = Number.isInteger(Number(source.conversationHistoryLimit))
+        ? Number(source.conversationHistoryLimit)
+        : 100;
     return Object.freeze({
         sendButtonEnabled: source.sendButtonEnabled === true,
         activeApiPresetId: asText(source.activeApiPresetId, 256),
@@ -70,9 +73,25 @@ function cloneGlobalSettings(settings) {
         groupReplyPresetId: asText(source.groupReplyPresetId, 256),
         groupProactivePresetId: asText(source.groupProactivePresetId, 256),
         hostContextTurns: Number.isInteger(Number(source.hostContextTurns)) ? Number(source.hostContextTurns) : 3,
-        conversationHistoryLimit: Number.isInteger(Number(source.conversationHistoryLimit))
-            ? Number(source.conversationHistoryLimit)
-            : 100,
+        conversationHistoryLimit: legacyHistoryLimit,
+        privateConversationHistoryLimit: Number.isInteger(Number(source.privateConversationHistoryLimit))
+            ? Number(source.privateConversationHistoryLimit)
+            : legacyHistoryLimit,
+        groupConversationHistoryLimit: Number.isInteger(Number(source.groupConversationHistoryLimit))
+            ? Number(source.groupConversationHistoryLimit)
+            : legacyHistoryLimit,
+        groupPrivateMemoryHistoryLimit: Number.isInteger(Number(source.groupPrivateMemoryHistoryLimit))
+            ? Number(source.groupPrivateMemoryHistoryLimit)
+            : legacyHistoryLimit,
+        privateWorldbookScanLimit: Number.isInteger(Number(source.privateWorldbookScanLimit))
+            ? Number(source.privateWorldbookScanLimit)
+            : 3,
+        groupWorldbookScanLimit: Number.isInteger(Number(source.groupWorldbookScanLimit))
+            ? Number(source.groupWorldbookScanLimit)
+            : 3,
+        hostWorldbookScanLimit: Number.isInteger(Number(source.hostWorldbookScanLimit))
+            ? Number(source.hostWorldbookScanLimit)
+            : 2,
         hostContextExtractTag: Object.hasOwn(source, 'hostContextExtractTag')
             ? (asText(source.hostContextExtractTag)
                 ? normalizeQQV2TagName(source.hostContextExtractTag) || 'content'
