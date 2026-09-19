@@ -25,15 +25,20 @@ async function testPlaceholdersHaveOneStableMeaningAndKeepUnknownText() {
         '人物名字。',
     );
     assert.equal(
+        QQ_V2_PROMPT_PLACEHOLDER_DEFINITIONS.find(({ token }) => token === '{{私聊人物姓名}}')?.description,
+        '当前私聊人物的纯姓名。',
+    );
+    assert.equal(
         QQ_V2_PROMPT_PLACEHOLDER_DEFINITIONS.find(({ token }) => token === '{{私聊主动人物}}')?.description,
         '联系人所有人名字。',
     );
     const blocks = [{
         role: 'system',
-        content: '{{私聊人物}}|{{私聊主动人物}}|{{群聊成员}}|{{群聊记忆}}|{{主动群聊记忆}}|{{私聊记忆}}|{{主动私聊记忆}}|{{私聊主动记录}}|{{群聊记录}}|{{正文上下文}}|{{世界书内容}}|{{故事时间}}|{{可用表情}}|{{天气}}',
+        content: '{{私聊人物}}|{{私聊人物姓名}}|{{私聊主动人物}}|{{群聊成员}}|{{群聊记忆}}|{{主动群聊记忆}}|{{私聊记忆}}|{{主动私聊记忆}}|{{私聊主动记录}}|{{群聊记录}}|{{正文上下文}}|{{世界书内容}}|{{故事时间}}|{{可用表情}}|{{天气}}',
     }];
     const result = materializeQQV2PromptBlocks(blocks, {
         privatePerson: '林知夏',
+        privatePersonName: '林知夏',
         privateProactivePeople: 'P1：林知夏\nP2：顾言',
         groupMembers: '',
         groupMemory: '当前人物参加的群聊',
@@ -49,7 +54,7 @@ async function testPlaceholdersHaveOneStableMeaningAndKeepUnknownText() {
     });
     assert.deepEqual(result, [{
         role: 'system',
-        content: '林知夏|P1：林知夏\nP2：顾言|无|当前人物参加的群聊|主动私聊人物参加的群聊|当前群成员各自的私聊|主动群成员各自的私聊|全部私聊分区历史|群聊历史|正文|世界书|2026-09-04 10:00|S1｜开心|{{天气}}',
+        content: '林知夏|林知夏|P1：林知夏\nP2：顾言|无|当前人物参加的群聊|主动私聊人物参加的群聊|当前群成员各自的私聊|主动群成员各自的私聊|全部私聊分区历史|群聊历史|正文|世界书|2026-09-04 10:00|S1｜开心|{{天气}}',
     }]);
     assert.equal(QQ_V2_PROMPT_PLACEHOLDERS.includes('{{私聊记录}}'), false);
 }
@@ -74,6 +79,18 @@ async function testManualHistoryHasOneCurrentUserMessageAndProactiveDoesNotAppen
         ['user', '最新一句'],
     ]);
     assert.equal(manual.filter((message) => message.content === '最新一句').length, 1);
+
+    const marked = buildManualQQV2Request({
+        preset,
+        variables: { privatePerson: '林知夏' },
+        history: history.map((message, index) => ({ ...message, messageId: `m-${index + 1}` })),
+        currentMessage: { messageId: 'm-3', senderType: 'self', content: '最新一句' },
+        markIncomingPrivateMessage: true,
+    });
+    assert.deepEqual(marked.slice(-2).map((message) => [message.role, message.content]), [
+        ['assistant', '收到'],
+        ['user', '<incoming_private_message>\n最新一句\n</incoming_private_message>'],
+    ]);
 
     const proactive = buildProactiveQQV2Request({
         preset: { blocks: [{ role: 'user', content: '{{私聊主动记录}}' }] },

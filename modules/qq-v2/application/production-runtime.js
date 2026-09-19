@@ -1033,6 +1033,9 @@ export function createQQV2ProductionRuntime(options = {}) {
             privatePerson: conversation.kind === 'private'
                 ? buildPrivateIdentity(conversation, facts.people, referenceByPersonId)
                 : '无',
+            privatePersonName: conversation.kind === 'private'
+                ? asText(facts.people[0]?.formalName, 120)
+                : '无',
             groupMembers: conversation.kind === 'group'
                 ? buildGroupIdentity(conversation, facts.group, facts.peopleById, referenceByPersonId)
                 : '无',
@@ -1177,6 +1180,8 @@ export function createQQV2ProductionRuntime(options = {}) {
                     variables: context.variables,
                     history: context.history,
                     currentMessage: input.currentMessage,
+                    markIncomingPrivateMessage: input.conversation.kind === 'private'
+                        && !input.conversation.assistantCharacterId,
                 }),
                 references: {
                     [input.conversation.kind === 'group' ? 'G1' : 'P1']: input.conversation.conversationId,

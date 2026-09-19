@@ -1,6 +1,7 @@
 export const QQ_V2_PROMPT_PLACEHOLDER_DEFINITIONS = Object.freeze([
     Object.freeze({ token: '{{人物人设}}', variable: 'assistantPersona', description: '当前陪聊人物的姓名与完整人设。' }),
     Object.freeze({ token: '{{私聊人物}}', variable: 'privatePerson', description: '人物名字。' }),
+    Object.freeze({ token: '{{私聊人物姓名}}', variable: 'privatePersonName', description: '当前私聊人物的纯姓名。' }),
     Object.freeze({ token: '{{私聊主动人物}}', variable: 'privateProactivePeople', description: '联系人所有人名字。' }),
     Object.freeze({ token: '{{群聊成员}}', variable: 'groupMembers', description: '当前群聊成员的身份、角色与权限。' }),
     Object.freeze({ token: '{{群聊记忆}}', variable: 'groupMemory', description: '当前私聊人物参加的群聊记忆。' }),

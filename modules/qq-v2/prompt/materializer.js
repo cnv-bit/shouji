@@ -130,12 +130,29 @@ export function materializeQQV2PromptBlocks(blocks, variables = {}) {
 /**
  * 手动回复的角色历史只来自当前 QQ 会话，并作为真实角色消息追加一次。
  */
-export function buildManualQQV2Request({ preset, variables = {}, history = [], currentMessage } = {}) {
+export function buildManualQQV2Request({
+    preset,
+    variables = {},
+    history = [],
+    currentMessage,
+    markIncomingPrivateMessage = false,
+} = {}) {
     const request = [...materializeQQV2PromptBlocks(preset, variables)];
     const visibleHistory = Array.isArray(history) ? history.filter(isVisibleMessage) : [];
-    request.push(...visibleHistory.map(historyMessage));
+    const incoming = markIncomingPrivateMessage
+        ? visibleHistory.find((message) => sameMessage(message, currentMessage)) || currentMessage
+        : null;
+    const earlierHistory = incoming
+        ? visibleHistory.filter((message) => !sameMessage(message, incoming))
+        : visibleHistory;
+    request.push(...earlierHistory.map(historyMessage));
 
-    if (currentMessage && !visibleHistory.some((message) => sameMessage(message, currentMessage))) {
+    if (incoming) {
+        request.push(Object.freeze({
+            role: 'user',
+            content: `<incoming_private_message>\n${escapeXml(historyMessage(incoming).content)}\n</incoming_private_message>`,
+        }));
+    } else if (currentMessage && !visibleHistory.some((message) => sameMessage(message, currentMessage))) {
         request.push(historyMessage(currentMessage));
     }
     return Object.freeze(request.map((message) => Object.freeze({ ...message })));
